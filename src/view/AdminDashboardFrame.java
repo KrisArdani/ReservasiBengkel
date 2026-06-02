@@ -45,7 +45,7 @@ public class AdminDashboardFrame extends JFrame {
     private JTable tblKelola;
     private DefaultTableModel tableModelKelola;
     private List<Object[]> rawReservasiRows;
-    private int selectedRowIndexKelola = -1;
+
 
     // Card 2: Atur Jadwal & Montir Components
     private JTextField txtJadwalNoRes;
@@ -67,6 +67,11 @@ public class AdminDashboardFrame extends JFrame {
     private DefaultTableModel tableModelLaporan;
     private List<Object[]> rawLaporanRows;
     private JButton btnExportExcel;
+
+    // Peningkatan 8: Label untuk Widget Metrik Ringkasan Laporan
+    private JLabel lblWidgetTotal;
+    private JLabel lblWidgetSelesai;
+    private JLabel lblWidgetMontir;
 
     private static final Color NAVY_BLUE = new Color(0, 32, 96); // #002060
     private static final Color ACTIVE_BLUE = new Color(25, 118, 210); // #1976D2
@@ -276,6 +281,7 @@ public class AdminDashboardFrame extends JFrame {
             public boolean isCellEditable(int row, int column) { return false; }
         };
         tblKelola = new JTable(tableModelKelola);
+        tblKelola.setDefaultRenderer(Object.class, new StatusRenderer());
         tblKelola.setRowHeight(22);
         tblKelola.setFont(new Font("Segoe UI", Font.PLAIN, 12));
         tblKelola.getTableHeader().setFont(new Font("Georgia", Font.BOLD, 12));
@@ -343,6 +349,16 @@ public class AdminDashboardFrame extends JFrame {
                         "Peringatan", JOptionPane.WARNING_MESSAGE);
                     return;
                 }
+                
+                Object[] rawRow = rawReservasiRows.get(row);
+                String currentStatus = rawRow[7].toString();
+                if ("Selesai".equalsIgnoreCase(currentStatus) || "Dibatalkan".equalsIgnoreCase(currentStatus) || "Ditolak".equalsIgnoreCase(currentStatus)) {
+                    JOptionPane.showMessageDialog(AdminDashboardFrame.this, 
+                        "Jadwal & Montir tidak dapat diatur untuk reservasi yang sudah " + currentStatus + "!", 
+                        "Peringatan", JOptionPane.WARNING_MESSAGE);
+                    return;
+                }
+                
                 loadSelectedRowToSchedule(row);
             }
         });
@@ -569,7 +585,26 @@ public class AdminDashboardFrame extends JFrame {
         });
         inputsPanel.add(btnTampilkanLaporan, gbc);
 
-        contentArea.add(inputsPanel, BorderLayout.NORTH);
+        // Peningkatan 8: Gabungkan inputsPanel dan metricsPanel ke panel atas Laporan
+        JPanel topLaporanPanel = new JPanel(new BorderLayout());
+        topLaporanPanel.setBackground(new Color(244, 244, 244));
+        topLaporanPanel.add(inputsPanel, BorderLayout.NORTH);
+
+        // Metrics Widgets Panel
+        JPanel metricsPanel = new JPanel(new GridLayout(1, 3, 20, 0));
+        metricsPanel.setBackground(new Color(244, 244, 244));
+        metricsPanel.setBorder(new EmptyBorder(0, 8, 15, 8));
+
+        lblWidgetTotal = new JLabel("0");
+        lblWidgetSelesai = new JLabel("0");
+        lblWidgetMontir = new JLabel("-");
+
+        metricsPanel.add(createWidgetCard("TOTAL RESERVASI", lblWidgetTotal, NAVY_BLUE));
+        metricsPanel.add(createWidgetCard("SERVIS SELESAI", lblWidgetSelesai, GREEN_BUTTON));
+        metricsPanel.add(createWidgetCard("MONTIR TERAKTIF", lblWidgetMontir, ACTIVE_BLUE));
+
+        topLaporanPanel.add(metricsPanel, BorderLayout.CENTER);
+        contentArea.add(topLaporanPanel, BorderLayout.NORTH);
 
         // Table Laporan
         String[] columns = {"No", "Tanggal", "Pelanggan", "Kendaraan"};
@@ -578,6 +613,7 @@ public class AdminDashboardFrame extends JFrame {
             public boolean isCellEditable(int row, int column) { return false; }
         };
         tblLaporan = new JTable(tableModelLaporan);
+        tblLaporan.setDefaultRenderer(Object.class, new StatusRenderer()); // Mewarnai Laporan juga!
         tblLaporan.setRowHeight(22);
         tblLaporan.setFont(new Font("Segoe UI", Font.PLAIN, 12));
         tblLaporan.getTableHeader().setFont(new Font("Georgia", Font.BOLD, 12));
@@ -586,12 +622,12 @@ public class AdminDashboardFrame extends JFrame {
 
         cardLaporan.add(contentArea, BorderLayout.CENTER);
 
-        // Bottom Excel Button (Green, rounded, italic)
-        JPanel bottomPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        // Bottom Controls Panel (Export Excel & Cetak Laporan)
+        JPanel bottomPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 15, 0));
         bottomPanel.setBackground(new Color(244, 244, 244));
         bottomPanel.setBorder(new EmptyBorder(15, 0, 0, 0));
 
-        btnExportExcel = new JButton("Export Excel");
+        btnExportExcel = new JButton("Export CSV");
         btnExportExcel.setFont(new Font("Georgia", Font.BOLD | Font.ITALIC, 14));
         btnExportExcel.setBackground(GREEN_BUTTON);
         btnExportExcel.setForeground(Color.WHITE);
@@ -603,7 +639,23 @@ public class AdminDashboardFrame extends JFrame {
                 handleExportLaporan();
             }
         });
+
+        // Peningkatan 9: Tombol Cetak Laporan langsung ke printer / PDF
+        JButton btnPrintLaporan = new JButton("Cetak Laporan");
+        btnPrintLaporan.setFont(new Font("Georgia", Font.BOLD | Font.ITALIC, 14));
+        btnPrintLaporan.setBackground(ACTIVE_BLUE);
+        btnPrintLaporan.setForeground(Color.WHITE);
+        btnPrintLaporan.setPreferredSize(new Dimension(160, 36));
+        btnPrintLaporan.putClientProperty("JButton.buttonType", "roundRect");
+        btnPrintLaporan.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                handlePrintLaporan();
+            }
+        });
+
         bottomPanel.add(btnExportExcel);
+        bottomPanel.add(btnPrintLaporan);
         cardLaporan.add(bottomPanel, BorderLayout.SOUTH);
     }
 
@@ -614,13 +666,13 @@ public class AdminDashboardFrame extends JFrame {
         String keyword = txtSearch.getText().trim();
         rawReservasiRows = adminController.getAllReservasi(keyword.isEmpty() ? null : keyword);
         
-        int no = 1;
+
         for (Object[] row : rawReservasiRows) {
             String customNo = "RSV-2026-" + String.format("%04d", (int)row[0]);
             
             // Format customer & vehicle names
             String pelanggan = row[1].toString().split(" \\(")[0];
-            String kendaraan = row[2].toString().split(" \\(")[0];
+
 
             tableModelKelola.addRow(new Object[]{
                 customNo,
@@ -630,7 +682,6 @@ public class AdminDashboardFrame extends JFrame {
                 row[7], // Status
                 "Atur Jadwal"
             });
-            no++;
         }
     }
 
@@ -683,6 +734,21 @@ public class AdminDashboardFrame extends JFrame {
 
         Object[] rawRow = rawReservasiRows.get(row);
         int idRes = (int) rawRow[0];
+        String currentStatus = rawRow[7].toString();
+        String montirName = rawRow[6].toString();
+
+        // Peningkatan 7: Workflow Enforcer
+        // 1. Prevent illogical updates on terminal statuses
+        if ("Selesai".equalsIgnoreCase(currentStatus) || "Dibatalkan".equalsIgnoreCase(currentStatus) || "Ditolak".equalsIgnoreCase(currentStatus)) {
+            JOptionPane.showMessageDialog(this, "Reservasi yang sudah " + currentStatus + " tidak dapat diubah lagi statusnya!", "Peringatan", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
+        // 2. Prohibit processing or completing a service if no mechanic is assigned
+        if (montirName == null || montirName.trim().isEmpty() || montirName.contains("- Belum Ditentukan -") || montirName.contains("-")) {
+            JOptionPane.showMessageDialog(this, "Montir belum dialokasikan untuk reservasi ini! Harap atur jadwal & montir terlebih dahulu.", "Peringatan", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
 
         boolean success = adminController.updateStatus(idRes, status);
         if (success) {
@@ -708,6 +774,32 @@ public class AdminDashboardFrame extends JFrame {
         String tanggal = txtJadwalTanggal.getText().trim();
         String jam = cmbJadwalJam.getSelectedItem().toString();
 
+        // Validasi Hari dan Tanggal Operasional (Cegah tanggal lampau & Hari Minggu)
+        try {
+            LocalDate chosenDate = LocalDate.parse(tanggal);
+            if (chosenDate.isBefore(LocalDate.now())) {
+                JOptionPane.showMessageDialog(this, "Tanggal servis tidak boleh di masa lampau!", "Peringatan", JOptionPane.WARNING_MESSAGE);
+                return;
+            }
+            if (chosenDate.getDayOfWeek() == java.time.DayOfWeek.SUNDAY) {
+                JOptionPane.showMessageDialog(this, "Bengkel tutup pada hari Minggu! Harap pilih hari lain.", "Peringatan", JOptionPane.WARNING_MESSAGE);
+                return;
+            }
+        } catch (java.time.format.DateTimeParseException ex) {
+            JOptionPane.showMessageDialog(this, "Format Tanggal (YYYY-MM-DD) tidak valid!", "Format Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        // Peningkatan 6: Overlap Schedule Prevention (Deteksi Tabrakan Jadwal Montir)
+        boolean available = adminController.isMontirAvailable(m.getIdMontir(), tanggal, jam, currentEditingReservasiId);
+        if (!available) {
+            JOptionPane.showMessageDialog(this, 
+                "Montir " + m.getNama() + " sudah memiliki jadwal tugas aktif lain pada tanggal " + tanggal + " jam " + jam + "!\n" +
+                "Harap tentukan montir lain atau ganti waktu reservasi.", 
+                "Bentrok Jadwal Montir", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
         String result = adminController.assignMontirAndSchedule(currentEditingReservasiId, m.getIdMontir(), tanggal, jam);
         if ("SUCCESS".equals(result)) {
             // Auto update status to Dikonfirmasi on schedule assign
@@ -729,7 +821,7 @@ public class AdminDashboardFrame extends JFrame {
         String sampai = txtSampaiTanggal.getText().trim();
 
         rawLaporanRows = laporanController.getLaporanData(dari, sampai);
-        int no = 1;
+
         for (Object[] row : rawLaporanRows) {
             String customNo = "RSV-2026-" + String.format("%04d", (int)row[0]);
             String pelanggan = row[3].toString();
@@ -739,9 +831,43 @@ public class AdminDashboardFrame extends JFrame {
                 customNo,
                 row[1], // Tanggal
                 pelanggan,
-                kendaraan
+                kendaraan,
+                row[8]  // Status untuk rendering warna status laporan
             });
-            no++;
+        }
+
+        // Peningkatan 8: Hitung Metrik Ringkasan secara dinamis dari data Laporan
+        int totalReservasi = rawLaporanRows.size();
+        int totalSelesai = 0;
+        java.util.Map<String, Integer> montirCount = new java.util.HashMap<>();
+
+        for (Object[] row : rawLaporanRows) {
+            String status = row[8].toString();
+            if ("Selesai".equalsIgnoreCase(status)) {
+                totalSelesai++;
+            }
+            
+            String montir = row[7] != null ? row[7].toString() : "-";
+            if (!"-".equals(montir) && !montir.trim().isEmpty()) {
+                montirCount.put(montir, montirCount.getOrDefault(montir, 0) + 1);
+            }
+        }
+
+        String montirTeraktif = "-";
+        int maxCount = 0;
+        for (java.util.Map.Entry<String, Integer> entry : montirCount.entrySet()) {
+            if (entry.getValue() > maxCount) {
+                maxCount = entry.getValue();
+                montirTeraktif = entry.getKey();
+            }
+        }
+
+        lblWidgetTotal.setText(String.valueOf(totalReservasi));
+        lblWidgetSelesai.setText(String.valueOf(totalSelesai));
+        if (!"-".equals(montirTeraktif)) {
+            lblWidgetMontir.setText(montirTeraktif + " (" + maxCount + "x)");
+        } else {
+            lblWidgetMontir.setText("-");
         }
 
         if (rawLaporanRows.isEmpty()) {
@@ -786,6 +912,92 @@ public class AdminDashboardFrame extends JFrame {
             } else {
                 JOptionPane.showMessageDialog(this, "Gagal menyimpan file laporan.", "Error", JOptionPane.ERROR_MESSAGE);
             }
+        }
+    }
+
+    // Peningkatan 8: Card Widget Builder untuk Metrik Ringkasan
+    private JPanel createWidgetCard(String title, JLabel valueLabel, Color valColor) {
+        JPanel card = new JPanel(new BorderLayout());
+        card.setBackground(Color.WHITE);
+        card.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(new Color(220, 220, 220), 1, true),
+            BorderFactory.createEmptyBorder(10, 15, 10, 15)
+        ));
+        
+        JLabel lblTitle = new JLabel(title);
+        lblTitle.setFont(new Font("Georgia", Font.BOLD, 12));
+        lblTitle.setForeground(Color.GRAY);
+        card.add(lblTitle, BorderLayout.NORTH);
+        
+        valueLabel.setFont(new Font("Segoe UI", Font.BOLD, 20));
+        valueLabel.setForeground(valColor);
+        card.add(valueLabel, BorderLayout.CENTER);
+        
+        return card;
+    }
+
+    // Peningkatan 9: Fungsi Cetak Laporan Ke Printer / PDF
+    private void handlePrintLaporan() {
+        if (tableModelLaporan.getRowCount() == 0) {
+            JOptionPane.showMessageDialog(this, "Silakan tampilkan laporan transaksi terlebih dahulu!", "Peringatan", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
+        try {
+            java.text.MessageFormat header = new java.text.MessageFormat("Laporan Reservasi Bengkel (" + txtDariTanggal.getText() + " s/d " + txtSampaiTanggal.getText() + ")");
+            java.text.MessageFormat footer = new java.text.MessageFormat("Halaman {0}");
+            boolean complete = tblLaporan.print(JTable.PrintMode.FIT_WIDTH, header, footer);
+            if (complete) {
+                JOptionPane.showMessageDialog(this, "Pencetakan berhasil!", "Sukses", JOptionPane.INFORMATION_MESSAGE);
+            }
+        } catch (java.awt.print.PrinterException ex) {
+            JOptionPane.showMessageDialog(this, "Gagal mencetak laporan: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    // Peningkatan 4 & 8: Custom Renderer untuk Pewarnaan Baris Tabel Berdasarkan Status
+    private class StatusRenderer extends javax.swing.table.DefaultTableCellRenderer {
+        @Override
+        public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
+            Component c = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
+            
+            String status = "";
+            if (table.getColumnCount() > 4) {
+                // Untuk tabel kelola yang memiliki kolom status di index 4
+                Object val = table.getValueAt(row, 4);
+                status = val != null ? val.toString() : "";
+            } else {
+                // Untuk tabel laporan (hanya 4 kolom), ambil status secara aman dari data rawLaporanRows
+                if (rawLaporanRows != null && row < rawLaporanRows.size()) {
+                    Object[] rawRow = rawLaporanRows.get(row);
+                    if (rawRow != null && rawRow.length > 8) {
+                        status = rawRow[8] != null ? rawRow[8].toString() : "";
+                    }
+                }
+            }
+            
+            if (isSelected) {
+                c.setBackground(table.getSelectionBackground());
+                c.setForeground(table.getSelectionForeground());
+            } else {
+                if ("Menunggu Konfirmasi".equalsIgnoreCase(status)) {
+                    c.setBackground(new Color(255, 243, 205)); // Light yellow
+                    c.setForeground(new Color(133, 100, 4));
+                } else if ("Dalam Proses".equalsIgnoreCase(status) || "Proses".equalsIgnoreCase(status) || "Dikonfirmasi".equalsIgnoreCase(status)) {
+                    c.setBackground(new Color(209, 236, 241)); // Light blue
+                    c.setForeground(new Color(12, 84, 96));
+                } else if ("Selesai".equalsIgnoreCase(status)) {
+                    c.setBackground(new Color(212, 239, 223)); // Light green
+                    c.setForeground(new Color(21, 67, 34));
+                } else if ("Dibatalkan".equalsIgnoreCase(status) || "Ditolak".equalsIgnoreCase(status)) {
+                    c.setBackground(new Color(248, 215, 218)); // Light red
+                    c.setForeground(new Color(114, 28, 36));
+                } else {
+                    c.setBackground(Color.WHITE);
+                    c.setForeground(Color.BLACK);
+                }
+            }
+            return c;
         }
     }
 }

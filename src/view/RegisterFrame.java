@@ -61,10 +61,7 @@ public class RegisterFrame extends JFrame {
         gbc.gridwidth = 1;
 
         // Form Fields
-        String[] labels = {
-            "Nama Lengkap", "Alamat", "No. Telepon", 
-            "Username", "Password", "Konfirmasi Password"
-        };
+
         
         // Nama Lengkap
         gbc.gridx = 0; gbc.gridy = 1; gbc.weightx = 0.35;

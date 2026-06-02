@@ -44,7 +44,7 @@ public class KepalaBengkelDashboardFrame extends JFrame {
     private static final Color NAVY_BLUE = new Color(0, 32, 96); // #002060
     private static final Color ACTIVE_BLUE = new Color(25, 118, 210); // #1976D2
     private static final Color GREEN_BUTTON = new Color(40, 167, 69); // #28A745
-    private static final Color GRAY_BUTTON = new Color(214, 214, 214); // #D6D6D6
+
     private static final Color SIDEBAR_GRAY = new Color(212, 212, 212); // #D4D4D4
 
     public KepalaBengkelDashboardFrame() {
@@ -295,7 +295,7 @@ public class KepalaBengkelDashboardFrame extends JFrame {
         String sampai = txtSampaiTanggal.getText().trim();
 
         rawLaporanRows = laporanController.getLaporanData(dari, sampai);
-        int no = 1;
+
         for (Object[] row : rawLaporanRows) {
             String customNo = "RSV-2026-" + String.format("%04d", (int)row[0]);
             String pelanggan = row[3].toString();
@@ -307,7 +307,6 @@ public class KepalaBengkelDashboardFrame extends JFrame {
                 pelanggan,
                 kendaraan
             });
-            no++;
         }
 
         if (rawLaporanRows.isEmpty()) {

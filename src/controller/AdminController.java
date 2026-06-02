@@ -58,7 +58,7 @@ public class AdminController {
                     String pelangganInfo = rs.getString("nama_pelanggan") + " (" + rs.getString("no_hp") + ")";
                     String kendaraanInfo = rs.getString("merk") + " " + rs.getString("tipe") + " (" + rs.getString("plat_nomer") + ")";
                     
-                    int idMontir = rs.getInt("id_montir");
+
                     String montirName = rs.getString("nama_montir");
                     if (rs.wasNull()) {
                         montirName = "- Belum Ditentukan -";
@@ -166,5 +166,38 @@ public class AdminController {
         } catch (SQLException e) {
             return "Gagal update jadwal/montir: " + e.getMessage();
         }
+    }
+
+    /**
+     * Checks if a mechanic is available at a given date and time.
+     * Excludes a specific reservation ID (useful when editing an existing one).
+     */
+    public boolean isMontirAvailable(int idMontir, String tanggalStr, String jamStr, int excludeReservasiId) {
+        Connection conn = Database.getConnection();
+        if (conn == null) return false;
+
+        String query = "SELECT COUNT(*) FROM reservasi " +
+                       "WHERE id_montir = ? AND tanggal = ? AND jam = ? AND id_reservasi != ? " +
+                       "AND status NOT IN ('Selesai', 'Dibatalkan', 'Ditolak')";
+        try {
+            Date sqlDate = Date.valueOf(tanggalStr);
+            Time sqlTime = Time.valueOf(jamStr + ":00");
+
+            try (PreparedStatement stmt = conn.prepareStatement(query)) {
+                stmt.setInt(1, idMontir);
+                stmt.setDate(2, sqlDate);
+                stmt.setTime(3, sqlTime);
+                stmt.setInt(4, excludeReservasiId);
+
+                try (ResultSet rs = stmt.executeQuery()) {
+                    if (rs.next()) {
+                        return rs.getInt(1) == 0;
+                    }
+                }
+            }
+        } catch (Exception e) {
+            System.err.println("Gagal mengecek ketersediaan montir: " + e.getMessage());
+        }
+        return true;
     }
 }

@@ -91,6 +91,21 @@ public class PelangganController {
                 return "Gagal memproses data kendaraan!";
             }
 
+            // 1b. Double Booking Check (Pengecekan Reservasi Ganda Aktif)
+            String checkActiveQuery = "SELECT COUNT(*) FROM reservasi WHERE id_pelanggan = ? AND id_kendaraan = ? " +
+                                      "AND status IN ('Menunggu Konfirmasi', 'Dalam Proses', 'Proses', 'Dikonfirmasi')";
+            try (PreparedStatement checkStmt = conn.prepareStatement(checkActiveQuery)) {
+                checkStmt.setInt(1, idPelanggan);
+                checkStmt.setInt(2, idKendaraan);
+                try (ResultSet rs = checkStmt.executeQuery()) {
+                    if (rs.next() && rs.getInt(1) > 0) {
+                        conn.rollback();
+                        conn.setAutoCommit(true);
+                        return "DUPLICATE";
+                    }
+                }
+            }
+
             // 2. Parse Date and Time
             Date sqlDate = Date.valueOf(tanggalStr); // YYYY-MM-DD
             Time sqlTime = Time.valueOf(jamStr + ":00"); // HH:MM:SS
@@ -167,5 +182,23 @@ public class PelangganController {
         }
 
         return data;
+    }
+
+    /**
+     * Cancels a reservation by its ID if it is still in "Menunggu Konfirmasi" status.
+     * Returns true on success.
+     */
+    public boolean cancelReservasi(int idReservasi) {
+        Connection conn = Database.getConnection();
+        if (conn == null) return false;
+
+        String query = "UPDATE reservasi SET status = 'Dibatalkan' WHERE id_reservasi = ? AND status = 'Menunggu Konfirmasi'";
+        try (PreparedStatement stmt = conn.prepareStatement(query)) {
+            stmt.setInt(1, idReservasi);
+            return stmt.executeUpdate() > 0;
+        } catch (SQLException e) {
+            System.err.println("Gagal membatalkan reservasi: " + e.getMessage());
+            return false;
+        }
     }
 }

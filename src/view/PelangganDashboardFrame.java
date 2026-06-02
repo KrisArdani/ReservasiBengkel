@@ -378,6 +378,7 @@ public class PelangganDashboardFrame extends JFrame {
             public boolean isCellEditable(int row, int column) { return false; }
         };
         tblHistory = new JTable(tableModel);
+        tblHistory.setDefaultRenderer(Object.class, new StatusRenderer());
         tblHistory.setRowHeight(22);
         tblHistory.setFont(new Font("Segoe UI", Font.PLAIN, 12));
         tblHistory.getTableHeader().setFont(new Font("Georgia", Font.BOLD, 12));
@@ -409,6 +410,51 @@ public class PelangganDashboardFrame extends JFrame {
             }
         });
 
+        JButton btnBatal = new JButton("Batalkan Reservasi");
+        btnBatal.setFont(new Font("Segoe UI", Font.BOLD, 12));
+        btnBatal.setBackground(new Color(220, 53, 69)); // Bootstrap Danger Red
+        btnBatal.setForeground(Color.WHITE);
+        btnBatal.setPreferredSize(new Dimension(160, 32));
+        btnBatal.setFocusPainted(false);
+        btnBatal.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                int row = tblHistory.getSelectedRow();
+                if (row == -1) {
+                    JOptionPane.showMessageDialog(PelangganDashboardFrame.this, 
+                        "Silakan pilih salah satu baris reservasi dari tabel terlebih dahulu!", 
+                        "Peringatan", JOptionPane.WARNING_MESSAGE);
+                    return;
+                }
+                
+                Object[] rawRow = rawHistoryRows.get(row);
+                int idReservasi = (int) rawRow[0];
+                String status = rawRow[6].toString();
+                
+                if (!"Menunggu Konfirmasi".equalsIgnoreCase(status)) {
+                    JOptionPane.showMessageDialog(PelangganDashboardFrame.this, 
+                        "Hanya reservasi dengan status 'Menunggu Konfirmasi' yang dapat dibatalkan secara mandiri!", 
+                        "Peringatan", JOptionPane.WARNING_MESSAGE);
+                    return;
+                }
+                
+                int confirm = JOptionPane.showConfirmDialog(PelangganDashboardFrame.this, 
+                    "Apakah Anda yakin ingin membatalkan reservasi ini?", 
+                    "Konfirmasi Pembatalan", JOptionPane.YES_NO_OPTION);
+                if (confirm == JOptionPane.YES_OPTION) {
+                    boolean success = pelangganController.cancelReservasi(idReservasi);
+                    if (success) {
+                        JOptionPane.showMessageDialog(PelangganDashboardFrame.this, 
+                            "Reservasi berhasil dibatalkan!", "Sukses", JOptionPane.INFORMATION_MESSAGE);
+                        loadHistoryData();
+                    } else {
+                        JOptionPane.showMessageDialog(PelangganDashboardFrame.this, 
+                            "Gagal membatalkan reservasi.", "Error", JOptionPane.ERROR_MESSAGE);
+                    }
+                }
+            }
+        });
+
         JButton btnRefreshList = new JButton("Refresh");
         btnRefreshList.setFont(new Font("Segoe UI", Font.BOLD, 12));
         btnRefreshList.setBackground(GRAY_BUTTON);
@@ -423,6 +469,7 @@ public class PelangganDashboardFrame extends JFrame {
         });
 
         controlPanel.add(btnRefreshList);
+        controlPanel.add(btnBatal);
         controlPanel.add(btnDetail);
         cardStatusReservasi.add(controlPanel, BorderLayout.SOUTH);
     }
@@ -593,10 +640,18 @@ public class PelangganDashboardFrame extends JFrame {
         if (option == JOptionPane.OK_OPTION) {
             String merk = txtM.getText().trim();
             String tipe = txtT.getText().trim();
-            String plat = txtP.getText().trim();
+            String platRaw = txtP.getText().trim();
 
-            if (merk.isEmpty() || tipe.isEmpty() || plat.isEmpty()) {
+            if (merk.isEmpty() || tipe.isEmpty() || platRaw.isEmpty()) {
                 JOptionPane.showMessageDialog(this, "Semua data kendaraan harus diisi!", "Error", JOptionPane.ERROR_MESSAGE);
+                cmbKendaraan.setSelectedIndex(0);
+                return;
+            }
+
+            // Standardisasi Plat Nomor (Kapitalisasi dan normalisasi spasi)
+            String plat = platRaw.replaceAll("\\s+", " ").toUpperCase();
+            if (!plat.matches("^[A-Z]{1,2}\\s?\\d{1,4}\\s?[A-Z]{1,3}$")) {
+                JOptionPane.showMessageDialog(this, "Format Plat Nomor tidak valid (contoh: B 1234 ABC)!", "Format Error", JOptionPane.ERROR_MESSAGE);
                 cmbKendaraan.setSelectedIndex(0);
                 return;
             }
@@ -622,7 +677,7 @@ public class PelangganDashboardFrame extends JFrame {
     private void loadHistoryData() {
         tableModel.setRowCount(0);
         rawHistoryRows = pelangganController.getHistoryReservasi(Session.getIdPelanggan());
-        int no = 1;
+
         for (Object[] row : rawHistoryRows) {
             // Mapping details list format
             String customNoRes = "RSV-2026-" + String.format("%04d", (int)row[0]);
@@ -633,7 +688,6 @@ public class PelangganDashboardFrame extends JFrame {
                 row[2], // Jam Servis
                 row[6]  // Status
             });
-            no++;
         }
     }
 
@@ -670,10 +724,42 @@ public class PelangganDashboardFrame extends JFrame {
             return;
         }
 
-        // We can execute reservation using the retrieved id_kendaraan directly to avoid re-inserting
+        // Peningkatan 1: Validasi Jam & Hari Operasional Bengkel (Cegah tanggal lampau & Hari Minggu)
+        try {
+            LocalDate chosenDate = LocalDate.parse(tanggal);
+            if (chosenDate.isBefore(LocalDate.now())) {
+                JOptionPane.showMessageDialog(this, "Tanggal servis tidak boleh di masa lampau!", "Peringatan", JOptionPane.WARNING_MESSAGE);
+                return;
+            }
+            if (chosenDate.getDayOfWeek() == java.time.DayOfWeek.SUNDAY) {
+                JOptionPane.showMessageDialog(this, "Bengkel tutup pada hari Minggu! Harap pilih hari lain.", "Peringatan", JOptionPane.WARNING_MESSAGE);
+                return;
+            }
+        } catch (java.time.format.DateTimeParseException ex) {
+            JOptionPane.showMessageDialog(this, "Format Tanggal (YYYY-MM-DD) tidak valid!", "Format Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
         Connection conn = config.Database.getConnection();
         if (conn == null) {
             JOptionPane.showMessageDialog(this, "Koneksi database gagal!", "Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        // Peningkatan 3: Pengecekan Reservasi Ganda Aktif (Double Booking Check)
+        String checkActiveQuery = "SELECT COUNT(*) FROM reservasi WHERE id_pelanggan = ? AND id_kendaraan = ? " +
+                                  "AND status IN ('Menunggu Konfirmasi', 'Dalam Proses', 'Proses', 'Dikonfirmasi')";
+        try (java.sql.PreparedStatement checkStmt = conn.prepareStatement(checkActiveQuery)) {
+            checkStmt.setInt(1, Session.getIdPelanggan());
+            checkStmt.setInt(2, idKendaraan);
+            try (java.sql.ResultSet rs = checkStmt.executeQuery()) {
+                if (rs.next() && rs.getInt(1) > 0) {
+                    JOptionPane.showMessageDialog(this, "Kendaraan ini sudah memiliki reservasi aktif yang sedang berjalan!", "Peringatan", JOptionPane.WARNING_MESSAGE);
+                    return;
+                }
+            }
+        } catch (SQLException ex) {
+            JOptionPane.showMessageDialog(this, "Gagal mengecek reservasi aktif: " + ex.getMessage(), "Database Error", JOptionPane.ERROR_MESSAGE);
             return;
         }
 
@@ -706,6 +792,40 @@ public class PelangganDashboardFrame extends JFrame {
             JOptionPane.showMessageDialog(this, "Format Tanggal (YYYY-MM-DD) tidak valid!", "Format Error", JOptionPane.ERROR_MESSAGE);
         } catch (SQLException ex) {
             JOptionPane.showMessageDialog(this, "Gagal membuat reservasi: " + ex.getMessage(), "Database Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    // Peningkatan 4: Custom Renderer untuk Pewarnaan Baris Tabel Berdasarkan Status
+    private static class StatusRenderer extends javax.swing.table.DefaultTableCellRenderer {
+        @Override
+        public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
+            Component c = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
+            
+            Object val = table.getValueAt(row, 4);
+            String status = val != null ? val.toString() : "";
+            
+            if (isSelected) {
+                c.setBackground(table.getSelectionBackground());
+                c.setForeground(table.getSelectionForeground());
+            } else {
+                if ("Menunggu Konfirmasi".equalsIgnoreCase(status)) {
+                    c.setBackground(new Color(255, 243, 205)); // Light yellow
+                    c.setForeground(new Color(133, 100, 4));
+                } else if ("Dalam Proses".equalsIgnoreCase(status) || "Proses".equalsIgnoreCase(status) || "Dikonfirmasi".equalsIgnoreCase(status)) {
+                    c.setBackground(new Color(209, 236, 241)); // Light blue
+                    c.setForeground(new Color(12, 84, 96));
+                } else if ("Selesai".equalsIgnoreCase(status)) {
+                    c.setBackground(new Color(212, 239, 223)); // Light green
+                    c.setForeground(new Color(21, 67, 34));
+                } else if ("Dibatalkan".equalsIgnoreCase(status) || "Ditolak".equalsIgnoreCase(status)) {
+                    c.setBackground(new Color(248, 215, 218)); // Light red
+                    c.setForeground(new Color(114, 28, 36));
+                } else {
+                    c.setBackground(Color.WHITE);
+                    c.setForeground(Color.BLACK);
+                }
+            }
+            return c;
         }
     }
 }
