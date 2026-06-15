@@ -73,11 +73,13 @@ public class AdminDashboardFrame extends JFrame {
     private JLabel lblWidgetSelesai;
     private JLabel lblWidgetMontir;
 
-    private static final Color NAVY_BLUE = new Color(0, 32, 96); // #002060
-    private static final Color ACTIVE_BLUE = new Color(25, 118, 210); // #1976D2
-    private static final Color GREEN_BUTTON = new Color(40, 167, 69); // #28A745
-    private static final Color GRAY_BUTTON = new Color(214, 214, 214); // #D6D6D6
-    private static final Color SIDEBAR_GRAY = new Color(212, 212, 212); // #D4D4D4
+    private static final Color NAVY_BLUE = new Color(15, 23, 42); // #0F172A (Slate 900)
+    private static final Color ACTIVE_BLUE = new Color(37, 99, 235); // #2563EB (Royal Blue)
+    private static final Color GREEN_BUTTON = new Color(16, 185, 129); // #10B981 (Emerald Green)
+    private static final Color GRAY_BUTTON = new Color(241, 245, 249); // #F1F5F9 (slate-100)
+    private static final Color SIDEBAR_BG = new Color(15, 23, 42); // #0F172A (slate-900)
+    private static final Color BG_LIGHT = new Color(248, 250, 252); // #F8FAFC (slate-50)
+    private static final Color TEXT_MUTED = new Color(100, 116, 139); // #64748B (slate-500)
 
     public AdminDashboardFrame() {
         adminController = new AdminController();
@@ -90,7 +92,7 @@ public class AdminDashboardFrame extends JFrame {
     private void initializeUI() {
         setTitle("Dasbor Admin - Sistem Reservasi Bengkel");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setSize(940, 580);
+        setSize(980, 620); // slightly larger for modern layout spacing
         setLocationRelativeTo(null);
         setResizable(false);
 
@@ -99,16 +101,64 @@ public class AdminDashboardFrame extends JFrame {
 
         // --- 1. SIDEBAR PANEL (LEFT) ---
         sidebarPanel = new JPanel();
-        sidebarPanel.setBackground(SIDEBAR_GRAY);
-        sidebarPanel.setPreferredSize(new Dimension(220, 0));
-        sidebarPanel.setBorder(new EmptyBorder(40, 15, 40, 15));
+        sidebarPanel.setBackground(SIDEBAR_BG);
+        sidebarPanel.setPreferredSize(new Dimension(230, 0));
+        sidebarPanel.setBorder(new EmptyBorder(30, 15, 30, 15));
         sidebarPanel.setLayout(new GridBagLayout());
 
         GridBagConstraints gbcNav = new GridBagConstraints();
         gbcNav.fill = GridBagConstraints.HORIZONTAL;
-        gbcNav.insets = new Insets(10, 0, 10, 0);
+        gbcNav.insets = new Insets(8, 0, 8, 0);
         gbcNav.weightx = 1.0;
         gbcNav.gridx = 0;
+
+        // PROFILE WIDGET
+        JPanel profilePanel = new JPanel();
+        profilePanel.setOpaque(false);
+        profilePanel.setLayout(new GridBagLayout());
+        GridBagConstraints gbcProfile = new GridBagConstraints();
+        gbcProfile.gridx = 0;
+        
+        // Circular initials avatar
+        String nameStr = Session.getNama();
+        String initial = nameStr.isEmpty() ? "A" : nameStr.substring(0, 1).toUpperCase();
+        JLabel avatarLabel = new JLabel(initial, JLabel.CENTER) {
+            @Override
+            protected void paintComponent(Graphics g) {
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                g2.setColor(new Color(255, 255, 255, 25));
+                g2.fillOval(0, 0, getWidth(), getHeight());
+                g2.dispose();
+                super.paintComponent(g);
+            }
+        };
+        avatarLabel.setFont(new Font("Segoe UI", Font.BOLD, 18));
+        avatarLabel.setForeground(Color.WHITE);
+        avatarLabel.setPreferredSize(new Dimension(54, 54));
+        avatarLabel.setMinimumSize(new Dimension(54, 54));
+        
+        gbcProfile.gridy = 0;
+        gbcProfile.insets = new Insets(0, 0, 8, 0);
+        profilePanel.add(avatarLabel, gbcProfile);
+        
+        JLabel lblUserName = new JLabel(Session.getNama(), JLabel.CENTER);
+        lblUserName.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        lblUserName.setForeground(Color.WHITE);
+        gbcProfile.gridy = 1;
+        gbcProfile.insets = new Insets(0, 0, 2, 0);
+        profilePanel.add(lblUserName, gbcProfile);
+        
+        JLabel lblUserRole = new JLabel("Administrator", JLabel.CENTER);
+        lblUserRole.setFont(new Font("Segoe UI", Font.PLAIN, 11));
+        lblUserRole.setForeground(TEXT_MUTED);
+        gbcProfile.gridy = 2;
+        gbcProfile.insets = new Insets(0, 0, 25, 0);
+        profilePanel.add(lblUserRole, gbcProfile);
+
+        // Add profile panel at the top of the sidebar
+        gbcNav.gridy = 0;
+        sidebarPanel.add(profilePanel, gbcNav);
 
         navButtons = new ArrayList<>();
 
@@ -118,16 +168,16 @@ public class AdminDashboardFrame extends JFrame {
         btnNavLaporan = createNavButton("Laporan");
         btnNavLogout = createNavButton("Logout");
 
-        gbcNav.gridy = 0; sidebarPanel.add(btnNavDashboard, gbcNav);
-        gbcNav.gridy = 1; sidebarPanel.add(btnNavKelola, gbcNav);
-        gbcNav.gridy = 2; sidebarPanel.add(btnNavJadwal, gbcNav);
-        gbcNav.gridy = 3; sidebarPanel.add(btnNavLaporan, gbcNav);
+        gbcNav.gridy = 1; sidebarPanel.add(btnNavDashboard, gbcNav);
+        gbcNav.gridy = 2; sidebarPanel.add(btnNavKelola, gbcNav);
+        gbcNav.gridy = 3; sidebarPanel.add(btnNavJadwal, gbcNav);
+        gbcNav.gridy = 4; sidebarPanel.add(btnNavLaporan, gbcNav);
 
-        gbcNav.gridy = 4;
+        gbcNav.gridy = 5;
         gbcNav.weighty = 1.0;
         sidebarPanel.add(Box.createGlue(), gbcNav);
 
-        gbcNav.gridy = 5;
+        gbcNav.gridy = 6;
         gbcNav.weighty = 0.0;
         sidebarPanel.add(btnNavLogout, gbcNav);
 
@@ -136,7 +186,7 @@ public class AdminDashboardFrame extends JFrame {
         // --- 2. CONTENT PANEL (RIGHT - CardLayout) ---
         cardLayout = new CardLayout();
         contentPanel = new JPanel(cardLayout);
-        contentPanel.setBackground(new Color(244, 244, 244));
+        contentPanel.setBackground(BG_LIGHT);
         mainPanel.add(contentPanel, BorderLayout.CENTER);
 
         // Initialize Cards
@@ -155,8 +205,8 @@ public class AdminDashboardFrame extends JFrame {
 
     private JButton createNavButton(String text) {
         JButton btn = new JButton(text);
-        btn.setFont(new Font("Georgia", Font.BOLD | Font.ITALIC, 14));
-        btn.setPreferredSize(new Dimension(180, 36));
+        btn.setFont(new Font("Segoe UI", Font.BOLD, 13));
+        btn.setPreferredSize(new Dimension(190, 38));
         btn.setFocusPainted(false);
         btn.putClientProperty("JButton.buttonType", "roundRect");
 
@@ -194,9 +244,13 @@ public class AdminDashboardFrame extends JFrame {
             if (btn == activeButton) {
                 btn.setBackground(ACTIVE_BLUE);
                 btn.setForeground(Color.WHITE);
+                btn.setContentAreaFilled(true);
+                btn.setOpaque(true);
             } else {
-                btn.setBackground(Color.WHITE);
-                btn.setForeground(NAVY_BLUE);
+                btn.setBackground(new Color(0, 0, 0, 0));
+                btn.setForeground(new Color(203, 213, 225)); // slate-300 light text for dark sidebar
+                btn.setContentAreaFilled(false);
+                btn.setOpaque(false);
             }
         }
         cardLayout.show(contentPanel, cardName);
@@ -204,66 +258,169 @@ public class AdminDashboardFrame extends JFrame {
 
     // --- CARD 1: DEFAULT DASHBOARD ---
     private void createDashboardCard() {
-        cardDashboard = new JPanel(new GridBagLayout());
-        cardDashboard.setBackground(new Color(244, 244, 244));
-        GridBagConstraints gbc = new GridBagConstraints();
-        gbc.insets = new Insets(10, 10, 10, 10);
-        gbc.gridx = 0;
+        cardDashboard = new JPanel(new BorderLayout());
+        cardDashboard.setBackground(BG_LIGHT);
+        cardDashboard.setBorder(new EmptyBorder(40, 40, 40, 40));
 
-        JLabel lblTitle = new JLabel("DASHBOARD ADMINISTRATOR");
-        lblTitle.setFont(new Font("Georgia", Font.BOLD, 28));
+        // Header Panel
+        JPanel headerPanel = new JPanel();
+        headerPanel.setOpaque(false);
+        headerPanel.setLayout(new BoxLayout(headerPanel, BoxLayout.Y_AXIS));
+
+        JLabel lblTitle = new JLabel("Dashboard Admin");
+        lblTitle.setFont(new Font("Segoe UI", Font.BOLD, 32));
         lblTitle.setForeground(NAVY_BLUE);
-        gbc.gridy = 0;
-        cardDashboard.add(lblTitle, gbc);
+        lblTitle.setAlignmentX(Component.LEFT_ALIGNMENT);
 
-        JLabel lblWelcome = new JLabel("Selamat Datang, " + Session.getNama() + "!");
-        lblWelcome.setFont(new Font("Georgia", Font.PLAIN, 18));
-        lblWelcome.setForeground(Color.BLACK);
-        gbc.gridy = 1;
-        cardDashboard.add(lblWelcome, gbc);
+        JLabel lblWelcome = new JLabel("Selamat Datang kembali, " + Session.getNama() + "!");
+        lblWelcome.setFont(new Font("Segoe UI", Font.PLAIN, 16));
+        lblWelcome.setForeground(TEXT_MUTED);
+        lblWelcome.setAlignmentX(Component.LEFT_ALIGNMENT);
+        lblWelcome.setBorder(new EmptyBorder(4, 0, 30, 0));
 
-        JLabel lblInfo = new JLabel("Gunakan menu di sebelah kiri untuk mengelola reservasi servis, alokasi montir, atau mencetak laporan.");
-        lblInfo.setFont(new Font("Segoe UI", Font.PLAIN, 13));
-        lblInfo.setForeground(Color.GRAY);
-        gbc.gridy = 2;
-        cardDashboard.add(lblInfo, gbc);
+        headerPanel.add(lblTitle);
+        headerPanel.add(lblWelcome);
+        cardDashboard.add(headerPanel, BorderLayout.NORTH);
+
+        // Grid for Shortcut Cards
+        JPanel cardsGrid = new JPanel(new GridLayout(1, 3, 20, 0));
+        cardsGrid.setOpaque(false);
+
+        // Shortcut 1: Kelola Reservasi
+        JPanel cardKelola = createShortcutCard(
+            "Kelola Reservasi", 
+            "Verifikasi data reservasi masuk, alokasi status pengerjaan servis bengkel.", 
+            "KELOLA", 
+            btnNavKelola, 
+            ACTIVE_BLUE
+        );
+        
+        // Shortcut 2: Jadwal & Montir
+        JPanel cardJadwal = createShortcutCard(
+            "Jadwal & Montir", 
+            "Alokasikan tugas montir ke kendaraan servis dan tentukan jam kerja.", 
+            "JADWAL", 
+            btnNavJadwal, 
+            new Color(139, 92, 246) // Purple accent
+        );
+
+        // Shortcut 3: Laporan
+        JPanel cardLaporan = createShortcutCard(
+            "Laporan Servis", 
+            "Cetak laporan rekap reservasi bengkel dan ekspor data ke file CSV.", 
+            "LAPORAN", 
+            btnNavLaporan, 
+            GREEN_BUTTON
+        );
+
+        cardsGrid.add(cardKelola);
+        cardsGrid.add(cardJadwal);
+        cardsGrid.add(cardLaporan);
+        cardDashboard.add(cardsGrid, BorderLayout.CENTER);
+    }
+
+    private JPanel createShortcutCard(String title, String desc, final String cardTarget, final JButton navBtnTarget, Color accentColor) {
+        JPanel card = new JPanel(new BorderLayout()) {
+            @Override
+            protected void paintComponent(Graphics g) {
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                g2.setColor(Color.WHITE);
+                g2.fillRoundRect(0, 0, getWidth(), getHeight(), 16, 16);
+                g2.setColor(new Color(226, 232, 240));
+                g2.drawRoundRect(0, 0, getWidth() - 1, getHeight() - 1, 16, 16);
+                g2.dispose();
+                super.paintComponent(g);
+            }
+        };
+        card.setOpaque(false);
+        card.setBorder(new EmptyBorder(24, 20, 24, 20));
+        card.setCursor(new Cursor(Cursor.HAND_CURSOR));
+
+        // Top Accent Bar
+        JPanel accentBar = new JPanel();
+        accentBar.setBackground(accentColor);
+        accentBar.setPreferredSize(new Dimension(6, 40));
+        card.add(accentBar, BorderLayout.WEST);
+
+        // Text Content
+        JPanel textPanel = new JPanel();
+        textPanel.setOpaque(false);
+        textPanel.setLayout(new BoxLayout(textPanel, BoxLayout.Y_AXIS));
+        textPanel.setBorder(new EmptyBorder(0, 14, 0, 0));
+
+        JLabel lblTitle = new JLabel(title);
+        lblTitle.setFont(new Font("Segoe UI", Font.BOLD, 17));
+        lblTitle.setForeground(NAVY_BLUE);
+        lblTitle.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+        JTextArea taDesc = new JTextArea(desc);
+        taDesc.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+        taDesc.setForeground(TEXT_MUTED);
+        taDesc.setLineWrap(true);
+        taDesc.setWrapStyleWord(true);
+        taDesc.setEditable(false);
+        taDesc.setFocusable(false);
+        taDesc.setOpaque(false);
+        taDesc.setAlignmentX(Component.LEFT_ALIGNMENT);
+        taDesc.setBorder(new EmptyBorder(8, 0, 0, 0));
+
+        textPanel.add(lblTitle);
+        textPanel.add(taDesc);
+        card.add(textPanel, BorderLayout.CENTER);
+
+        // Click interaction
+        card.addMouseListener(new java.awt.event.MouseAdapter() {
+            @Override
+            public void mouseClicked(java.awt.event.MouseEvent e) {
+                if ("KELOLA".equals(cardTarget)) {
+                    loadAllReservations();
+                }
+                navigate(cardTarget, navBtnTarget);
+            }
+        });
+
+        return card;
     }
 
     // --- CARD 2: KELOLA RESERVASI (Screenshot 5) ---
     private void createKelolaReservasiCard() {
         cardKelolaReservasi = new JPanel(new BorderLayout());
-        cardKelolaReservasi.setBackground(new Color(244, 244, 244));
+        cardKelolaReservasi.setBackground(BG_LIGHT);
         cardKelolaReservasi.setBorder(new EmptyBorder(30, 40, 30, 40));
 
         // Title
-        JLabel lblTitle = new JLabel("KELOLA RESERVASI");
-        lblTitle.setFont(new Font("Georgia", Font.BOLD, 36));
+        JLabel lblTitle = new JLabel("Kelola Reservasi");
+        lblTitle.setFont(new Font("Segoe UI", Font.BOLD, 28));
         lblTitle.setForeground(NAVY_BLUE);
         lblTitle.setBorder(new EmptyBorder(0, 0, 15, 0));
         cardKelolaReservasi.add(lblTitle, BorderLayout.NORTH);
 
         // Center Panel for Search and Table
         JPanel centerPanel = new JPanel(new BorderLayout());
-        centerPanel.setBackground(new Color(244, 244, 244));
+        centerPanel.setOpaque(false);
 
         // Search panel
         JPanel searchBarPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 5));
-        searchBarPanel.setBackground(new Color(244, 244, 244));
+        searchBarPanel.setOpaque(false);
+        searchBarPanel.setBorder(new EmptyBorder(0, 0, 10, 0));
         
-        JLabel lblSearch = new JLabel("Cari");
-        lblSearch.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        JLabel lblSearch = new JLabel("Cari Reservasi");
+        lblSearch.setFont(new Font("Segoe UI", Font.BOLD, 13));
+        lblSearch.setForeground(NAVY_BLUE);
         searchBarPanel.add(lblSearch);
 
         txtSearch = new JTextField();
-        txtSearch.setPreferredSize(new Dimension(220, 28));
-        txtSearch.setBorder(BorderFactory.createLineBorder(new Color(200, 200, 200), 1));
+        txtSearch.setPreferredSize(new Dimension(240, 32));
+        txtSearch.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+        txtSearch.putClientProperty("JTextField.placeholderText", "Masukkan kata kunci...");
         searchBarPanel.add(txtSearch);
 
         btnSearch = new JButton("Cari");
         btnSearch.setFont(new Font("Segoe UI", Font.BOLD, 12));
         btnSearch.setBackground(GRAY_BUTTON);
-        btnSearch.setForeground(Color.BLACK);
-        btnSearch.setPreferredSize(new Dimension(80, 28));
+        btnSearch.setForeground(NAVY_BLUE);
+        btnSearch.setPreferredSize(new Dimension(80, 32));
         btnSearch.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -275,31 +432,35 @@ public class AdminDashboardFrame extends JFrame {
         centerPanel.add(searchBarPanel, BorderLayout.NORTH);
 
         // JTable Table
-        String[] columns = {"No", "Pelanggan...", "Tanggal", "Jam", "Status", "Aksi"};
+        String[] columns = {"No", "Pelanggan", "Tanggal", "Jam", "Status", "Aksi"};
         tableModelKelola = new DefaultTableModel(columns, 0) {
             @Override
             public boolean isCellEditable(int row, int column) { return false; }
         };
         tblKelola = new JTable(tableModelKelola);
         tblKelola.setDefaultRenderer(Object.class, new StatusRenderer());
-        tblKelola.setRowHeight(22);
-        tblKelola.setFont(new Font("Segoe UI", Font.PLAIN, 12));
-        tblKelola.getTableHeader().setFont(new Font("Georgia", Font.BOLD, 12));
+        tblKelola.setRowHeight(32);
+        tblKelola.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+        tblKelola.getTableHeader().setFont(new Font("Segoe UI", Font.BOLD, 12));
+        tblKelola.setShowVerticalLines(false);
+        tblKelola.setIntercellSpacing(new Dimension(0, 1));
+        
         JScrollPane scrollTable = new JScrollPane(tblKelola);
+        scrollTable.setBorder(BorderFactory.createLineBorder(new Color(226, 232, 240), 1));
         centerPanel.add(scrollTable, BorderLayout.CENTER);
 
         cardKelolaReservasi.add(centerPanel, BorderLayout.CENTER);
 
         // Bottom Controls (Refresh & Detail Actions)
         JPanel bottomBar = new JPanel(new BorderLayout());
-        bottomBar.setBackground(new Color(244, 244, 244));
+        bottomBar.setOpaque(false);
         bottomBar.setBorder(new EmptyBorder(15, 0, 0, 0));
 
         JButton btnRefresh = new JButton("Refresh");
-        btnRefresh.setFont(new Font("Segoe UI", Font.BOLD, 12));
+        btnRefresh.setFont(new Font("Segoe UI", Font.BOLD, 13));
         btnRefresh.setBackground(GRAY_BUTTON);
-        btnRefresh.setForeground(Color.BLACK);
-        btnRefresh.setPreferredSize(new Dimension(100, 32));
+        btnRefresh.setForeground(NAVY_BLUE);
+        btnRefresh.setPreferredSize(new Dimension(100, 38));
         btnRefresh.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -310,13 +471,14 @@ public class AdminDashboardFrame extends JFrame {
         bottomBar.add(btnRefresh, BorderLayout.WEST);
 
         // Action Panel
-        JPanel actionSubPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 0));
-        actionSubPanel.setBackground(new Color(244, 244, 244));
+        JPanel actionSubPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 12, 0));
+        actionSubPanel.setOpaque(false);
 
         JButton btnStatusProses = new JButton("Proses Servis");
-        btnStatusProses.setFont(new Font("Segoe UI", Font.BOLD, 11));
+        btnStatusProses.setFont(new Font("Segoe UI", Font.BOLD, 12));
         btnStatusProses.setBackground(ACTIVE_BLUE);
         btnStatusProses.setForeground(Color.WHITE);
+        btnStatusProses.setPreferredSize(new Dimension(120, 38));
         btnStatusProses.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -325,9 +487,10 @@ public class AdminDashboardFrame extends JFrame {
         });
 
         JButton btnStatusSelesai = new JButton("Selesai Servis");
-        btnStatusSelesai.setFont(new Font("Segoe UI", Font.BOLD, 11));
+        btnStatusSelesai.setFont(new Font("Segoe UI", Font.BOLD, 12));
         btnStatusSelesai.setBackground(GREEN_BUTTON);
         btnStatusSelesai.setForeground(Color.WHITE);
+        btnStatusSelesai.setPreferredSize(new Dimension(120, 38));
         btnStatusSelesai.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -338,7 +501,8 @@ public class AdminDashboardFrame extends JFrame {
         JButton btnAssignSchedule = new JButton("Atur Jadwal & Montir");
         btnAssignSchedule.setFont(new Font("Segoe UI", Font.BOLD, 12));
         btnAssignSchedule.setBackground(GRAY_BUTTON);
-        btnAssignSchedule.setForeground(Color.BLACK);
+        btnAssignSchedule.setForeground(NAVY_BLUE);
+        btnAssignSchedule.setPreferredSize(new Dimension(165, 38));
         btnAssignSchedule.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -374,122 +538,144 @@ public class AdminDashboardFrame extends JFrame {
     // --- CARD 3: ATUR JADWAL & MONTIR (Screenshot 6) ---
     private void createJadwalMontirCard() {
         cardJadwalMontir = new JPanel(new BorderLayout());
-        cardJadwalMontir.setBackground(new Color(244, 244, 244));
+        cardJadwalMontir.setBackground(BG_LIGHT);
         cardJadwalMontir.setBorder(new EmptyBorder(30, 40, 30, 40));
 
         // Heading
-        JLabel lblTitle = new JLabel("ATUR JADWAL & MONTIR");
-        lblTitle.setFont(new Font("Georgia", Font.BOLD, 36));
+        JLabel lblTitle = new JLabel("Atur Jadwal & Montir");
+        lblTitle.setFont(new Font("Segoe UI", Font.BOLD, 28));
         lblTitle.setForeground(NAVY_BLUE);
         lblTitle.setBorder(new EmptyBorder(0, 0, 15, 0));
         cardJadwalMontir.add(lblTitle, BorderLayout.NORTH);
 
-        // Inputs Grid
-        JPanel inputsGrid = new JPanel(new GridBagLayout());
-        inputsGrid.setBackground(new Color(244, 244, 244));
+        // Inputs Card Container
+        JPanel formCard = new JPanel(new GridBagLayout());
+        formCard.setBackground(Color.WHITE);
+        formCard.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(new Color(226, 232, 240), 1, true),
+            BorderFactory.createEmptyBorder(20, 24, 20, 24)
+        ));
+
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.fill = GridBagConstraints.HORIZONTAL;
-        gbc.insets = new Insets(8, 8, 8, 8);
+        gbc.insets = new Insets(6, 12, 6, 12);
 
-        // Fonts
-        Font gFont = new Font("Georgia", Font.PLAIN, 15);
+        Font labelFont = new Font("Segoe UI", Font.BOLD, 12);
+        Font valueFont = new Font("Segoe UI", Font.PLAIN, 13);
 
-        // No. Reservasi
-        gbc.gridx = 0; gbc.gridy = 0; gbc.weightx = 0.3;
+        // Row 0: No Reservasi (Col 0) & Pelanggan (Col 1)
+        gbc.gridx = 0; gbc.gridy = 0; gbc.weightx = 0.5;
         JLabel lblNoRes = new JLabel("No Reservasi");
-        lblNoRes.setFont(gFont);
-        inputsGrid.add(lblNoRes, gbc);
-        gbc.gridx = 1; gbc.weightx = 0.7;
+        lblNoRes.setFont(labelFont);
+        lblNoRes.setForeground(NAVY_BLUE);
+        formCard.add(lblNoRes, gbc);
+
+        gbc.gridx = 1;
+        JLabel lblPelanggan = new JLabel("Nama Pelanggan");
+        lblPelanggan.setFont(labelFont);
+        lblPelanggan.setForeground(NAVY_BLUE);
+        formCard.add(lblPelanggan, gbc);
+
+        // Row 1: No Reservasi Input & Pelanggan Input
+        gbc.gridx = 0; gbc.gridy = 1;
         txtJadwalNoRes = new JTextField();
         txtJadwalNoRes.setEditable(false);
-        txtJadwalNoRes.setFont(new Font("Segoe UI", Font.PLAIN, 13));
-        txtJadwalNoRes.setPreferredSize(new Dimension(200, 30));
-        inputsGrid.add(txtJadwalNoRes, gbc);
+        txtJadwalNoRes.setFont(valueFont);
+        txtJadwalNoRes.setPreferredSize(new Dimension(180, 36));
+        formCard.add(txtJadwalNoRes, gbc);
 
-        // Pelanggan
-        gbc.gridx = 0; gbc.gridy = 1; gbc.weightx = 0.3;
-        JLabel lblPelanggan = new JLabel("Pelanggan");
-        lblPelanggan.setFont(gFont);
-        inputsGrid.add(lblPelanggan, gbc);
-        gbc.gridx = 1; gbc.weightx = 0.7;
+        gbc.gridx = 1;
         cmbJadwalPelanggan = new JComboBox<>();
         cmbJadwalPelanggan.setEnabled(false);
-        cmbJadwalPelanggan.setPreferredSize(new Dimension(200, 30));
-        inputsGrid.add(cmbJadwalPelanggan, gbc);
+        cmbJadwalPelanggan.setFont(valueFont);
+        cmbJadwalPelanggan.setPreferredSize(new Dimension(180, 36));
+        formCard.add(cmbJadwalPelanggan, gbc);
 
-        // Kendaraan
-        gbc.gridx = 0; gbc.gridy = 2; gbc.weightx = 0.3;
+        // Row 2: Kendaraan (Col 0) & Tanggal Servis (Col 1)
+        gbc.gridx = 0; gbc.gridy = 2;
         JLabel lblKendaraan = new JLabel("Kendaraan");
-        lblKendaraan.setFont(gFont);
-        inputsGrid.add(lblKendaraan, gbc);
-        gbc.gridx = 1; gbc.weightx = 0.7;
+        lblKendaraan.setFont(labelFont);
+        lblKendaraan.setForeground(NAVY_BLUE);
+        formCard.add(lblKendaraan, gbc);
+
+        gbc.gridx = 1;
+        JLabel lblTgl = new JLabel("Tanggal Servis (YYYY-MM-DD)");
+        lblTgl.setFont(labelFont);
+        lblTgl.setForeground(NAVY_BLUE);
+        formCard.add(lblTgl, gbc);
+
+        // Row 3: Kendaraan Input & Tanggal Input
+        gbc.gridx = 0; gbc.gridy = 3;
         cmbJadwalKendaraan = new JComboBox<>();
         cmbJadwalKendaraan.setEnabled(false);
-        cmbJadwalKendaraan.setPreferredSize(new Dimension(200, 30));
-        inputsGrid.add(cmbJadwalKendaraan, gbc);
+        cmbJadwalKendaraan.setFont(valueFont);
+        cmbJadwalKendaraan.setPreferredSize(new Dimension(180, 36));
+        formCard.add(cmbJadwalKendaraan, gbc);
 
-        // Tanggal Servis
-        gbc.gridx = 0; gbc.gridy = 3; gbc.weightx = 0.3;
-        JLabel lblTgl = new JLabel("Tanggal Servis");
-        lblTgl.setFont(gFont);
-        inputsGrid.add(lblTgl, gbc);
-        gbc.gridx = 1; gbc.weightx = 0.7;
+        gbc.gridx = 1;
         txtJadwalTanggal = new JTextField();
-        txtJadwalTanggal.setFont(new Font("Segoe UI", Font.PLAIN, 13));
-        txtJadwalTanggal.setPreferredSize(new Dimension(200, 30));
-        txtJadwalTanggal.setBorder(BorderFactory.createLineBorder(new Color(200, 200, 200), 1));
-        inputsGrid.add(txtJadwalTanggal, gbc);
+        txtJadwalTanggal.setFont(valueFont);
+        txtJadwalTanggal.setPreferredSize(new Dimension(180, 36));
+        formCard.add(txtJadwalTanggal, gbc);
 
-        // Jam Servis
-        gbc.gridx = 0; gbc.gridy = 4; gbc.weightx = 0.3;
+        // Row 4: Jam Servis (Col 0) & Montir (Col 1)
+        gbc.gridx = 0; gbc.gridy = 4;
         JLabel lblJam = new JLabel("Jam Servis");
-        lblJam.setFont(gFont);
-        inputsGrid.add(lblJam, gbc);
-        gbc.gridx = 1; gbc.weightx = 0.7;
+        lblJam.setFont(labelFont);
+        lblJam.setForeground(NAVY_BLUE);
+        formCard.add(lblJam, gbc);
+
+        gbc.gridx = 1;
+        JLabel lblMontir = new JLabel("Montir Yang Dialokasikan");
+        lblMontir.setFont(labelFont);
+        lblMontir.setForeground(NAVY_BLUE);
+        formCard.add(lblMontir, gbc);
+
+        // Row 5: Jam Input & Montir Input
+        gbc.gridx = 0; gbc.gridy = 5;
         cmbJadwalJam = new JComboBox<>(new String[]{
             "08:00", "09:00", "10:00", "11:00", "13:00", "14:00", "15:00", "16:00"
         });
-        cmbJadwalJam.setPreferredSize(new Dimension(200, 30));
-        inputsGrid.add(cmbJadwalJam, gbc);
+        cmbJadwalJam.setFont(valueFont);
+        cmbJadwalJam.setPreferredSize(new Dimension(180, 36));
+        formCard.add(cmbJadwalJam, gbc);
 
-        // Montir
-        gbc.gridx = 0; gbc.gridy = 5; gbc.weightx = 0.3;
-        JLabel lblMontir = new JLabel("Montir");
-        lblMontir.setFont(gFont);
-        inputsGrid.add(lblMontir, gbc);
-        gbc.gridx = 1; gbc.weightx = 0.7;
+        gbc.gridx = 1;
         cmbJadwalMontir = new JComboBox<>();
-        cmbJadwalMontir.setPreferredSize(new Dimension(200, 30));
-        inputsGrid.add(cmbJadwalMontir, gbc);
+        cmbJadwalMontir.setFont(valueFont);
+        cmbJadwalMontir.setPreferredSize(new Dimension(180, 36));
+        formCard.add(cmbJadwalMontir, gbc);
 
-        // Catatan (Complaint Area)
-        gbc.gridx = 0; gbc.gridy = 6; gbc.weightx = 0.3;
-        gbc.anchor = GridBagConstraints.NORTHWEST;
-        JLabel lblCatatan = new JLabel("Catatan");
-        lblCatatan.setFont(gFont);
-        inputsGrid.add(lblCatatan, gbc);
-        gbc.gridx = 1; gbc.weightx = 0.7;
-        gbc.anchor = GridBagConstraints.CENTER;
-        txtJadwalCatatan = new JTextArea(3, 20);
-        txtJadwalCatatan.setEditable(false); // Read-only complaint
+        // Row 6: Catatan (Span 2)
+        gbc.gridx = 0; gbc.gridy = 6; gbc.gridwidth = 2;
+        JLabel lblCatatan = new JLabel("Catatan Keluhan");
+        lblCatatan.setFont(labelFont);
+        lblCatatan.setForeground(NAVY_BLUE);
+        formCard.add(lblCatatan, gbc);
+
+        // Row 7: Catatan Input (Span 2)
+        gbc.gridx = 0; gbc.gridy = 7;
+        txtJadwalCatatan = new JTextArea(2, 20);
+        txtJadwalCatatan.setEditable(false);
         txtJadwalCatatan.setLineWrap(true);
         txtJadwalCatatan.setWrapStyleWord(true);
-        txtJadwalCatatan.setBorder(BorderFactory.createLineBorder(new Color(200, 200, 200), 1));
+        txtJadwalCatatan.setFont(valueFont);
         JScrollPane scrollCatatan = new JScrollPane(txtJadwalCatatan);
-        inputsGrid.add(scrollCatatan, gbc);
+        scrollCatatan.setPreferredSize(new Dimension(380, 56));
+        formCard.add(scrollCatatan, gbc);
 
-        cardJadwalMontir.add(inputsGrid, BorderLayout.CENTER);
+        cardJadwalMontir.add(formCard, BorderLayout.CENTER);
 
         // Bottom action bar
-        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 20, 0));
-        buttonPanel.setBackground(new Color(244, 244, 244));
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 12, 0));
+        buttonPanel.setOpaque(false);
         buttonPanel.setBorder(new EmptyBorder(15, 0, 0, 0));
 
         btnSimpanJadwal = new JButton("Simpan Jadwal");
         btnSimpanJadwal.setFont(new Font("Segoe UI", Font.BOLD, 13));
-        btnSimpanJadwal.setBackground(GRAY_BUTTON);
-        btnSimpanJadwal.setForeground(Color.BLACK);
-        btnSimpanJadwal.setPreferredSize(new Dimension(140, 36));
+        btnSimpanJadwal.setBackground(ACTIVE_BLUE);
+        btnSimpanJadwal.setForeground(Color.WHITE);
+        btnSimpanJadwal.setPreferredSize(new Dimension(140, 38));
         btnSimpanJadwal.setFocusPainted(false);
         btnSimpanJadwal.addActionListener(new ActionListener() {
             @Override
@@ -501,8 +687,8 @@ public class AdminDashboardFrame extends JFrame {
         btnKembaliJadwal = new JButton("Kembali");
         btnKembaliJadwal.setFont(new Font("Segoe UI", Font.BOLD, 13));
         btnKembaliJadwal.setBackground(GRAY_BUTTON);
-        btnKembaliJadwal.setForeground(Color.BLACK);
-        btnKembaliJadwal.setPreferredSize(new Dimension(100, 36));
+        btnKembaliJadwal.setForeground(NAVY_BLUE);
+        btnKembaliJadwal.setPreferredSize(new Dimension(100, 38));
         btnKembaliJadwal.setFocusPainted(false);
         btnKembaliJadwal.addActionListener(new ActionListener() {
             @Override
@@ -511,31 +697,31 @@ public class AdminDashboardFrame extends JFrame {
             }
         });
 
-        buttonPanel.add(btnSimpanJadwal);
         buttonPanel.add(btnKembaliJadwal);
+        buttonPanel.add(btnSimpanJadwal);
         cardJadwalMontir.add(buttonPanel, BorderLayout.SOUTH);
     }
 
     // --- CARD 4: LAPORAN RESERVASI (Screenshot 7) ---
     private void createLaporanCard() {
         cardLaporan = new JPanel(new BorderLayout());
-        cardLaporan.setBackground(new Color(244, 244, 244));
+        cardLaporan.setBackground(BG_LIGHT);
         cardLaporan.setBorder(new EmptyBorder(30, 40, 30, 40));
 
         // Heading
-        JLabel lblTitle = new JLabel("LAPORAN RESERVASI");
-        lblTitle.setFont(new Font("Georgia", Font.BOLD, 36));
+        JLabel lblTitle = new JLabel("Laporan Reservasi");
+        lblTitle.setFont(new Font("Segoe UI", Font.BOLD, 28));
         lblTitle.setForeground(NAVY_BLUE);
         lblTitle.setBorder(new EmptyBorder(0, 0, 15, 0));
         cardLaporan.add(lblTitle, BorderLayout.NORTH);
 
         // Content Area (Grid for date range and JTable)
         JPanel contentArea = new JPanel(new BorderLayout());
-        contentArea.setBackground(new Color(244, 244, 244));
+        contentArea.setOpaque(false);
 
         // Header inputs panel matching Screenshot 7
         JPanel inputsPanel = new JPanel(new GridBagLayout());
-        inputsPanel.setBackground(new Color(244, 244, 244));
+        inputsPanel.setOpaque(false);
         inputsPanel.setBorder(new EmptyBorder(0, 0, 15, 0));
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.insets = new Insets(4, 8, 4, 15);
@@ -544,38 +730,38 @@ public class AdminDashboardFrame extends JFrame {
         // Label Dari Tanggal
         gbc.gridx = 0; gbc.gridy = 0;
         JLabel lblDari = new JLabel("Dari tanggal");
-        lblDari.setFont(new Font("Georgia", Font.PLAIN, 14));
+        lblDari.setFont(new Font("Segoe UI", Font.BOLD, 12));
+        lblDari.setForeground(NAVY_BLUE);
         inputsPanel.add(lblDari, gbc);
 
         // Textfield Dari Tanggal
         gbc.gridy = 1;
         txtDariTanggal = new JTextField(LocalDate.now().minusMonths(1).toString());
         txtDariTanggal.setFont(new Font("Segoe UI", Font.PLAIN, 13));
-        txtDariTanggal.setPreferredSize(new Dimension(130, 28));
-        txtDariTanggal.setBorder(BorderFactory.createLineBorder(new Color(200, 200, 200), 1));
+        txtDariTanggal.setPreferredSize(new Dimension(140, 32));
         inputsPanel.add(txtDariTanggal, gbc);
 
         // Label Sampai
         gbc.gridx = 1; gbc.gridy = 0;
         JLabel lblSampai = new JLabel("Sampai");
-        lblSampai.setFont(new Font("Georgia", Font.PLAIN, 14));
+        lblSampai.setFont(new Font("Segoe UI", Font.BOLD, 12));
+        lblSampai.setForeground(NAVY_BLUE);
         inputsPanel.add(lblSampai, gbc);
 
         // Textfield Sampai
         gbc.gridy = 1;
         txtSampaiTanggal = new JTextField(LocalDate.now().toString());
         txtSampaiTanggal.setFont(new Font("Segoe UI", Font.PLAIN, 13));
-        txtSampaiTanggal.setPreferredSize(new Dimension(130, 28));
-        txtSampaiTanggal.setBorder(BorderFactory.createLineBorder(new Color(200, 200, 200), 1));
+        txtSampaiTanggal.setPreferredSize(new Dimension(140, 32));
         inputsPanel.add(txtSampaiTanggal, gbc);
 
-        // Button Tampilkan (Blue, rounded, italic)
+        // Button Tampilkan
         gbc.gridx = 2; gbc.gridy = 1;
         btnTampilkanLaporan = new JButton("Tampilkan");
-        btnTampilkanLaporan.setFont(new Font("Georgia", Font.BOLD | Font.ITALIC, 13));
+        btnTampilkanLaporan.setFont(new Font("Segoe UI", Font.BOLD, 13));
         btnTampilkanLaporan.setBackground(ACTIVE_BLUE);
         btnTampilkanLaporan.setForeground(Color.WHITE);
-        btnTampilkanLaporan.setPreferredSize(new Dimension(120, 28));
+        btnTampilkanLaporan.setPreferredSize(new Dimension(120, 32));
         btnTampilkanLaporan.putClientProperty("JButton.buttonType", "roundRect");
         btnTampilkanLaporan.addActionListener(new ActionListener() {
             @Override
@@ -585,23 +771,23 @@ public class AdminDashboardFrame extends JFrame {
         });
         inputsPanel.add(btnTampilkanLaporan, gbc);
 
-        // Peningkatan 8: Gabungkan inputsPanel dan metricsPanel ke panel atas Laporan
+        // topLaporanPanel combines inputsPanel and metricsPanel
         JPanel topLaporanPanel = new JPanel(new BorderLayout());
-        topLaporanPanel.setBackground(new Color(244, 244, 244));
+        topLaporanPanel.setOpaque(false);
         topLaporanPanel.add(inputsPanel, BorderLayout.NORTH);
 
         // Metrics Widgets Panel
         JPanel metricsPanel = new JPanel(new GridLayout(1, 3, 20, 0));
-        metricsPanel.setBackground(new Color(244, 244, 244));
+        metricsPanel.setOpaque(false);
         metricsPanel.setBorder(new EmptyBorder(0, 8, 15, 8));
 
         lblWidgetTotal = new JLabel("0");
         lblWidgetSelesai = new JLabel("0");
         lblWidgetMontir = new JLabel("-");
 
-        metricsPanel.add(createWidgetCard("TOTAL RESERVASI", lblWidgetTotal, NAVY_BLUE));
+        metricsPanel.add(createWidgetCard("TOTAL RESERVASI", lblWidgetTotal, ACTIVE_BLUE));
         metricsPanel.add(createWidgetCard("SERVIS SELESAI", lblWidgetSelesai, GREEN_BUTTON));
-        metricsPanel.add(createWidgetCard("MONTIR TERAKTIF", lblWidgetMontir, ACTIVE_BLUE));
+        metricsPanel.add(createWidgetCard("MONTIR TERAKTIF", lblWidgetMontir, new Color(139, 92, 246)));
 
         topLaporanPanel.add(metricsPanel, BorderLayout.CENTER);
         contentArea.add(topLaporanPanel, BorderLayout.NORTH);
@@ -613,25 +799,29 @@ public class AdminDashboardFrame extends JFrame {
             public boolean isCellEditable(int row, int column) { return false; }
         };
         tblLaporan = new JTable(tableModelLaporan);
-        tblLaporan.setDefaultRenderer(Object.class, new StatusRenderer()); // Mewarnai Laporan juga!
-        tblLaporan.setRowHeight(22);
-        tblLaporan.setFont(new Font("Segoe UI", Font.PLAIN, 12));
-        tblLaporan.getTableHeader().setFont(new Font("Georgia", Font.BOLD, 12));
+        tblLaporan.setDefaultRenderer(Object.class, new StatusRenderer());
+        tblLaporan.setRowHeight(32);
+        tblLaporan.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+        tblLaporan.getTableHeader().setFont(new Font("Segoe UI", Font.BOLD, 12));
+        tblLaporan.setShowVerticalLines(false);
+        tblLaporan.setIntercellSpacing(new Dimension(0, 1));
+        
         JScrollPane scrollTable = new JScrollPane(tblLaporan);
+        scrollTable.setBorder(BorderFactory.createLineBorder(new Color(226, 232, 240), 1));
         contentArea.add(scrollTable, BorderLayout.CENTER);
 
         cardLaporan.add(contentArea, BorderLayout.CENTER);
 
         // Bottom Controls Panel (Export Excel & Cetak Laporan)
-        JPanel bottomPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 15, 0));
-        bottomPanel.setBackground(new Color(244, 244, 244));
+        JPanel bottomPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 12, 0));
+        bottomPanel.setOpaque(false);
         bottomPanel.setBorder(new EmptyBorder(15, 0, 0, 0));
 
         btnExportExcel = new JButton("Export CSV");
-        btnExportExcel.setFont(new Font("Georgia", Font.BOLD | Font.ITALIC, 14));
+        btnExportExcel.setFont(new Font("Segoe UI", Font.BOLD, 13));
         btnExportExcel.setBackground(GREEN_BUTTON);
         btnExportExcel.setForeground(Color.WHITE);
-        btnExportExcel.setPreferredSize(new Dimension(140, 36));
+        btnExportExcel.setPreferredSize(new Dimension(140, 38));
         btnExportExcel.putClientProperty("JButton.buttonType", "roundRect");
         btnExportExcel.addActionListener(new ActionListener() {
             @Override
@@ -640,12 +830,11 @@ public class AdminDashboardFrame extends JFrame {
             }
         });
 
-        // Peningkatan 9: Tombol Cetak Laporan langsung ke printer / PDF
         JButton btnPrintLaporan = new JButton("Cetak Laporan");
-        btnPrintLaporan.setFont(new Font("Georgia", Font.BOLD | Font.ITALIC, 14));
+        btnPrintLaporan.setFont(new Font("Segoe UI", Font.BOLD, 13));
         btnPrintLaporan.setBackground(ACTIVE_BLUE);
         btnPrintLaporan.setForeground(Color.WHITE);
-        btnPrintLaporan.setPreferredSize(new Dimension(160, 36));
+        btnPrintLaporan.setPreferredSize(new Dimension(150, 38));
         btnPrintLaporan.putClientProperty("JButton.buttonType", "roundRect");
         btnPrintLaporan.addActionListener(new ActionListener() {
             @Override
@@ -920,16 +1109,16 @@ public class AdminDashboardFrame extends JFrame {
         JPanel card = new JPanel(new BorderLayout());
         card.setBackground(Color.WHITE);
         card.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createLineBorder(new Color(220, 220, 220), 1, true),
+            BorderFactory.createLineBorder(new Color(226, 232, 240), 1, true),
             BorderFactory.createEmptyBorder(10, 15, 10, 15)
         ));
         
         JLabel lblTitle = new JLabel(title);
-        lblTitle.setFont(new Font("Georgia", Font.BOLD, 12));
-        lblTitle.setForeground(Color.GRAY);
+        lblTitle.setFont(new Font("Segoe UI", Font.BOLD, 11));
+        lblTitle.setForeground(TEXT_MUTED);
         card.add(lblTitle, BorderLayout.NORTH);
         
-        valueLabel.setFont(new Font("Segoe UI", Font.BOLD, 20));
+        valueLabel.setFont(new Font("Segoe UI", Font.BOLD, 22));
         valueLabel.setForeground(valColor);
         card.add(valueLabel, BorderLayout.CENTER);
         

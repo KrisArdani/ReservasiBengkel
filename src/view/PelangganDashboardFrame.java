@@ -60,11 +60,13 @@ public class PelangganDashboardFrame extends JFrame {
     private JLabel lblDetailKeluhan;
     private JLabel lblDetailStatus;
 
-    private static final Color NAVY_BLUE = new Color(0, 32, 96); // #002060
-    private static final Color ACTIVE_BLUE = new Color(25, 118, 210); // #1976D2
-    private static final Color GREEN_BUTTON = new Color(40, 167, 69); // #28A745
-    private static final Color GRAY_BUTTON = new Color(214, 214, 214); // #D6D6D6
-    private static final Color SIDEBAR_GRAY = new Color(212, 212, 212); // #D4D4D4
+    private static final Color NAVY_BLUE = new Color(15, 23, 42); // #0F172A (Slate 900)
+    private static final Color ACTIVE_BLUE = new Color(37, 99, 235); // #2563EB (Royal Blue)
+    private static final Color GREEN_BUTTON = new Color(16, 185, 129); // #10B981 (Emerald Green)
+    private static final Color GRAY_BUTTON = new Color(241, 245, 249); // #F1F5F9 (slate-100)
+    private static final Color SIDEBAR_BG = new Color(15, 23, 42); // #0F172A (slate-900)
+    private static final Color BG_LIGHT = new Color(248, 250, 252); // #F8FAFC (slate-50)
+    private static final Color TEXT_MUTED = new Color(100, 116, 139); // #64748B (slate-500)
 
     public PelangganDashboardFrame() {
         pelangganController = new PelangganController();
@@ -76,7 +78,7 @@ public class PelangganDashboardFrame extends JFrame {
     private void initializeUI() {
         setTitle("Dasbor Pelanggan - Sistem Reservasi Bengkel");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setSize(900, 560);
+        setSize(940, 600); // slightly larger for modern layout spacing
         setLocationRelativeTo(null);
         setResizable(false);
 
@@ -86,38 +88,86 @@ public class PelangganDashboardFrame extends JFrame {
 
         // --- 1. SIDEBAR PANEL (LEFT) ---
         sidebarPanel = new JPanel();
-        sidebarPanel.setBackground(SIDEBAR_GRAY);
-        sidebarPanel.setPreferredSize(new Dimension(220, 0));
-        sidebarPanel.setBorder(new EmptyBorder(40, 15, 40, 15));
+        sidebarPanel.setBackground(SIDEBAR_BG);
+        sidebarPanel.setPreferredSize(new Dimension(230, 0));
+        sidebarPanel.setBorder(new EmptyBorder(30, 15, 30, 15));
         sidebarPanel.setLayout(new GridBagLayout());
         
         GridBagConstraints gbcNav = new GridBagConstraints();
         gbcNav.fill = GridBagConstraints.HORIZONTAL;
-        gbcNav.insets = new Insets(10, 0, 10, 0);
+        gbcNav.insets = new Insets(8, 0, 8, 0);
         gbcNav.weightx = 1.0;
         gbcNav.gridx = 0;
 
+        // PROFILE WIDGET
+        JPanel profilePanel = new JPanel();
+        profilePanel.setOpaque(false);
+        profilePanel.setLayout(new GridBagLayout());
+        GridBagConstraints gbcProfile = new GridBagConstraints();
+        gbcProfile.gridx = 0;
+        
+        // Circular initials avatar
+        String nameStr = Session.getNama();
+        String initial = nameStr.isEmpty() ? "P" : nameStr.substring(0, 1).toUpperCase();
+        JLabel avatarLabel = new JLabel(initial, JLabel.CENTER) {
+            @Override
+            protected void paintComponent(Graphics g) {
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                g2.setColor(new Color(255, 255, 255, 25));
+                g2.fillOval(0, 0, getWidth(), getHeight());
+                g2.dispose();
+                super.paintComponent(g);
+            }
+        };
+        avatarLabel.setFont(new Font("Segoe UI", Font.BOLD, 18));
+        avatarLabel.setForeground(Color.WHITE);
+        avatarLabel.setPreferredSize(new Dimension(54, 54));
+        avatarLabel.setMinimumSize(new Dimension(54, 54));
+        
+        gbcProfile.gridy = 0;
+        gbcProfile.insets = new Insets(0, 0, 8, 0);
+        profilePanel.add(avatarLabel, gbcProfile);
+        
+        JLabel lblUserName = new JLabel(Session.getNama(), JLabel.CENTER);
+        lblUserName.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        lblUserName.setForeground(Color.WHITE);
+        gbcProfile.gridy = 1;
+        gbcProfile.insets = new Insets(0, 0, 2, 0);
+        profilePanel.add(lblUserName, gbcProfile);
+        
+        JLabel lblUserRole = new JLabel("Pelanggan", JLabel.CENTER);
+        lblUserRole.setFont(new Font("Segoe UI", Font.PLAIN, 11));
+        lblUserRole.setForeground(TEXT_MUTED);
+        gbcProfile.gridy = 2;
+        gbcProfile.insets = new Insets(0, 0, 25, 0);
+        profilePanel.add(lblUserRole, gbcProfile);
+
+        // Add profile panel at the top of the sidebar
+        gbcNav.gridy = 0;
+        sidebarPanel.add(profilePanel, gbcNav);
+
         navButtons = new ArrayList<>();
 
-        // Create Navigation Buttons with Georgia Bold Italic style
+        // Create Navigation Buttons
         btnNavDashboard = createNavButton("Dashboard");
         btnNavBuat = createNavButton("Buat Reservasi");
         btnNavStatus = createNavButton("Status Reservasi");
         btnNavProfil = createNavButton("Profil");
         btnNavLogout = createNavButton("Logout");
 
-        // Add to sidebar panel
-        gbcNav.gridy = 0; sidebarPanel.add(btnNavDashboard, gbcNav);
-        gbcNav.gridy = 1; sidebarPanel.add(btnNavBuat, gbcNav);
-        gbcNav.gridy = 2; sidebarPanel.add(btnNavStatus, gbcNav);
-        gbcNav.gridy = 3; sidebarPanel.add(btnNavProfil, gbcNav);
+        // Add to sidebar panel (shift indices for profile panel)
+        gbcNav.gridy = 1; sidebarPanel.add(btnNavDashboard, gbcNav);
+        gbcNav.gridy = 2; sidebarPanel.add(btnNavBuat, gbcNav);
+        gbcNav.gridy = 3; sidebarPanel.add(btnNavStatus, gbcNav);
+        gbcNav.gridy = 4; sidebarPanel.add(btnNavProfil, gbcNav);
         
         // Push logout to the bottom
-        gbcNav.gridy = 4;
+        gbcNav.gridy = 5;
         gbcNav.weighty = 1.0;
         sidebarPanel.add(Box.createGlue(), gbcNav);
         
-        gbcNav.gridy = 5;
+        gbcNav.gridy = 6;
         gbcNav.weighty = 0.0;
         sidebarPanel.add(btnNavLogout, gbcNav);
 
@@ -126,7 +176,7 @@ public class PelangganDashboardFrame extends JFrame {
         // --- 2. CONTENT PANEL (RIGHT - CardLayout) ---
         cardLayout = new CardLayout();
         contentPanel = new JPanel(cardLayout);
-        contentPanel.setBackground(new Color(244, 244, 244));
+        contentPanel.setBackground(BG_LIGHT);
         mainPanel.add(contentPanel, BorderLayout.CENTER);
 
         // Initialize Individual Cards
@@ -149,10 +199,9 @@ public class PelangganDashboardFrame extends JFrame {
 
     private JButton createNavButton(String text) {
         JButton btn = new JButton(text);
-        btn.setFont(new Font("Georgia", Font.BOLD | Font.ITALIC, 14));
-        btn.setPreferredSize(new Dimension(180, 36));
+        btn.setFont(new Font("Segoe UI", Font.BOLD, 13));
+        btn.setPreferredSize(new Dimension(190, 38));
         btn.setFocusPainted(false);
-        // Using FlatLaf's oblong round rectangle properties
         btn.putClientProperty("JButton.buttonType", "roundRect");
         
         navButtons.add(btn);
@@ -185,14 +234,17 @@ public class PelangganDashboardFrame extends JFrame {
     }
 
     private void navigate(String cardName, JButton activeButton) {
-        // Toggle Sidebar colors
         for (JButton btn : navButtons) {
             if (btn == activeButton) {
                 btn.setBackground(ACTIVE_BLUE);
                 btn.setForeground(Color.WHITE);
+                btn.setContentAreaFilled(true);
+                btn.setOpaque(true);
             } else {
-                btn.setBackground(Color.WHITE);
-                btn.setForeground(NAVY_BLUE);
+                btn.setBackground(new Color(0, 0, 0, 0));
+                btn.setForeground(new Color(203, 213, 225)); // slate-300 light text for dark sidebar
+                btn.setContentAreaFilled(false);
+                btn.setOpaque(false);
             }
         }
         cardLayout.show(contentPanel, cardName);
@@ -200,71 +252,173 @@ public class PelangganDashboardFrame extends JFrame {
 
     // --- CARD 1: DEFAULT DASHBOARD ---
     private void createDashboardCard() {
-        cardDashboard = new JPanel(new GridBagLayout());
-        cardDashboard.setBackground(new Color(244, 244, 244));
-        GridBagConstraints gbc = new GridBagConstraints();
-        gbc.insets = new Insets(10, 10, 10, 10);
-        gbc.gridx = 0;
+        cardDashboard = new JPanel(new BorderLayout());
+        cardDashboard.setBackground(BG_LIGHT);
+        cardDashboard.setBorder(new EmptyBorder(40, 50, 40, 50));
 
-        JLabel lblTitle = new JLabel("DASHBOARD PELANGGAN");
-        lblTitle.setFont(new Font("Georgia", Font.BOLD, 28));
+        // Header Panel
+        JPanel headerPanel = new JPanel();
+        headerPanel.setOpaque(false);
+        headerPanel.setLayout(new BoxLayout(headerPanel, BoxLayout.Y_AXIS));
+
+        JLabel lblTitle = new JLabel("Dashboard Pelanggan");
+        lblTitle.setFont(new Font("Segoe UI", Font.BOLD, 32));
         lblTitle.setForeground(NAVY_BLUE);
-        gbc.gridy = 0;
-        cardDashboard.add(lblTitle, gbc);
+        lblTitle.setAlignmentX(Component.LEFT_ALIGNMENT);
 
-        JLabel lblWelcome = new JLabel("Selamat Datang, " + Session.getNama() + "!");
-        lblWelcome.setFont(new Font("Georgia", Font.PLAIN, 18));
-        lblWelcome.setForeground(Color.BLACK);
-        gbc.gridy = 1;
-        cardDashboard.add(lblWelcome, gbc);
+        JLabel lblWelcome = new JLabel("Selamat Datang kembali, " + Session.getNama() + "!");
+        lblWelcome.setFont(new Font("Segoe UI", Font.PLAIN, 16));
+        lblWelcome.setForeground(TEXT_MUTED);
+        lblWelcome.setAlignmentX(Component.LEFT_ALIGNMENT);
+        lblWelcome.setBorder(new EmptyBorder(4, 0, 30, 0));
 
-        JLabel lblInfo = new JLabel("Gunakan menu di sebelah kiri untuk melakukan reservasi servis baru atau melihat riwayat pemesanan Anda.");
-        lblInfo.setFont(new Font("Segoe UI", Font.PLAIN, 13));
-        lblInfo.setForeground(Color.GRAY);
-        gbc.gridy = 2;
-        cardDashboard.add(lblInfo, gbc);
+        headerPanel.add(lblTitle);
+        headerPanel.add(lblWelcome);
+        cardDashboard.add(headerPanel, BorderLayout.NORTH);
+
+        // Grid for Shortcut Cards
+        JPanel cardsGrid = new JPanel(new GridLayout(1, 2, 24, 0));
+        cardsGrid.setOpaque(false);
+
+        // Shortcut 1: Buat Reservasi
+        JPanel cardBuat = createShortcutCard(
+            "Buat Reservasi Baru", 
+            "Daftarkan kendaraan Anda untuk jadwal servis di bengkel kami secara cepat.", 
+            "BUAT", 
+            btnNavBuat, 
+            ACTIVE_BLUE
+        );
+        
+        // Shortcut 2: Status Reservasi
+        JPanel cardStatus = createShortcutCard(
+            "Status & Riwayat Reservasi", 
+            "Pantau status pengerjaan servis kendaraan Anda dan lihat riwayat transaksi.", 
+            "STATUS_LIST", 
+            btnNavStatus, 
+            GREEN_BUTTON
+        );
+
+        cardsGrid.add(cardBuat);
+        cardsGrid.add(cardStatus);
+        cardDashboard.add(cardsGrid, BorderLayout.CENTER);
+    }
+
+    private JPanel createShortcutCard(String title, String desc, final String cardTarget, final JButton navBtnTarget, Color accentColor) {
+        JPanel card = new JPanel(new BorderLayout()) {
+            @Override
+            protected void paintComponent(Graphics g) {
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                g2.setColor(Color.WHITE);
+                g2.fillRoundRect(0, 0, getWidth(), getHeight(), 16, 16);
+                g2.setColor(new Color(226, 232, 240));
+                g2.drawRoundRect(0, 0, getWidth() - 1, getHeight() - 1, 16, 16);
+                g2.dispose();
+                super.paintComponent(g);
+            }
+        };
+        card.setOpaque(false);
+        card.setBorder(new EmptyBorder(24, 24, 24, 24));
+        card.setCursor(new Cursor(Cursor.HAND_CURSOR));
+
+        // Top Accent Bar
+        JPanel accentBar = new JPanel();
+        accentBar.setBackground(accentColor);
+        accentBar.setPreferredSize(new Dimension(6, 40));
+        card.add(accentBar, BorderLayout.WEST);
+
+        // Text Content
+        JPanel textPanel = new JPanel();
+        textPanel.setOpaque(false);
+        textPanel.setLayout(new BoxLayout(textPanel, BoxLayout.Y_AXIS));
+        textPanel.setBorder(new EmptyBorder(0, 16, 0, 0));
+
+        JLabel lblTitle = new JLabel(title);
+        lblTitle.setFont(new Font("Segoe UI", Font.BOLD, 18));
+        lblTitle.setForeground(NAVY_BLUE);
+        lblTitle.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+        JTextArea taDesc = new JTextArea(desc);
+        taDesc.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+        taDesc.setForeground(TEXT_MUTED);
+        taDesc.setLineWrap(true);
+        taDesc.setWrapStyleWord(true);
+        taDesc.setEditable(false);
+        taDesc.setFocusable(false);
+        taDesc.setOpaque(false);
+        taDesc.setAlignmentX(Component.LEFT_ALIGNMENT);
+        taDesc.setBorder(new EmptyBorder(8, 0, 0, 0));
+
+        textPanel.add(lblTitle);
+        textPanel.add(taDesc);
+        card.add(textPanel, BorderLayout.CENTER);
+
+        // Click interaction
+        card.addMouseListener(new java.awt.event.MouseAdapter() {
+            @Override
+            public void mouseClicked(java.awt.event.MouseEvent e) {
+                if ("STATUS_LIST".equals(cardTarget)) {
+                    loadHistoryData();
+                }
+                navigate(cardTarget, navBtnTarget);
+            }
+        });
+
+        return card;
     }
 
     // --- CARD 2: BUAT RESERVASI (Screenshot 3) ---
     private void createBuatReservasiCard() {
         cardBuatReservasi = new JPanel(new BorderLayout());
-        cardBuatReservasi.setBackground(new Color(244, 244, 244));
+        cardBuatReservasi.setBackground(BG_LIGHT);
         cardBuatReservasi.setBorder(new EmptyBorder(30, 40, 30, 40));
 
         // Heading
-        JLabel lblHeading = new JLabel("BUAT RESERVASI");
-        lblHeading.setFont(new Font("Georgia", Font.BOLD, 36));
+        JLabel lblHeading = new JLabel("Buat Reservasi Baru");
+        lblHeading.setFont(new Font("Segoe UI", Font.BOLD, 28));
         lblHeading.setForeground(NAVY_BLUE);
-        lblHeading.setBorder(new EmptyBorder(0, 0, 20, 0));
+        lblHeading.setBorder(new EmptyBorder(0, 0, 15, 0));
         cardBuatReservasi.add(lblHeading, BorderLayout.NORTH);
 
-        // Inputs Panel
-        JPanel inputsGrid = new JPanel(new GridBagLayout());
-        inputsGrid.setBackground(new Color(244, 244, 244));
+        // Form Card Container
+        JPanel formCard = new JPanel(new GridBagLayout());
+        formCard.setBackground(Color.WHITE);
+        formCard.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(new Color(226, 232, 240), 1, true),
+            BorderFactory.createEmptyBorder(20, 24, 20, 24)
+        ));
+
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.fill = GridBagConstraints.HORIZONTAL;
-        gbc.insets = new Insets(8, 8, 8, 8);
+        gbc.insets = new Insets(6, 0, 6, 0);
+        gbc.gridx = 0;
 
-        // Pelanggan Dropdown
-        gbc.gridx = 0; gbc.gridy = 0; gbc.weightx = 0.3;
-        JLabel lblPelanggan = new JLabel("Pelanggan");
-        lblPelanggan.setFont(new Font("Georgia", Font.PLAIN, 15));
-        inputsGrid.add(lblPelanggan, gbc);
-        gbc.gridx = 1; gbc.weightx = 0.7;
+        Font labelFont = new Font("Segoe UI", Font.BOLD, 12);
+
+        // Pelanggan
+        gbc.gridy = 0;
+        JLabel lblPelanggan = new JLabel("Nama Pelanggan");
+        lblPelanggan.setFont(labelFont);
+        lblPelanggan.setForeground(NAVY_BLUE);
+        formCard.add(lblPelanggan, gbc);
+
+        gbc.gridy = 1;
         cmbPelanggan = new JComboBox<>(new String[]{ Session.getNama() });
         cmbPelanggan.setFont(new Font("Segoe UI", Font.PLAIN, 13));
-        cmbPelanggan.setPreferredSize(new Dimension(200, 30));
-        inputsGrid.add(cmbPelanggan, gbc);
+        cmbPelanggan.setPreferredSize(new Dimension(300, 36));
+        formCard.add(cmbPelanggan, gbc);
 
-        // Kendaraan Dropdown
-        gbc.gridx = 0; gbc.gridy = 1; gbc.weightx = 0.3;
+        // Kendaraan
+        gbc.gridy = 2;
         JLabel lblKendaraan = new JLabel("Kendaraan");
-        lblKendaraan.setFont(new Font("Georgia", Font.PLAIN, 15));
-        inputsGrid.add(lblKendaraan, gbc);
-        gbc.gridx = 1; gbc.weightx = 0.7;
+        lblKendaraan.setFont(labelFont);
+        lblKendaraan.setForeground(NAVY_BLUE);
+        formCard.add(lblKendaraan, gbc);
+
+        gbc.gridy = 3;
         cmbKendaraan = new JComboBox<>();
         cmbKendaraan.setFont(new Font("Segoe UI", Font.PLAIN, 13));
-        cmbKendaraan.setPreferredSize(new Dimension(200, 30));
+        cmbKendaraan.setPreferredSize(new Dimension(300, 36));
         cmbKendaraan.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -274,61 +428,64 @@ public class PelangganDashboardFrame extends JFrame {
                 }
             }
         });
-        inputsGrid.add(cmbKendaraan, gbc);
+        formCard.add(cmbKendaraan, gbc);
 
         // Tanggal Servis
-        gbc.gridx = 0; gbc.gridy = 2; gbc.weightx = 0.3;
-        JLabel lblTglServis = new JLabel("Tanggal Servis");
-        lblTglServis.setFont(new Font("Georgia", Font.PLAIN, 15));
-        inputsGrid.add(lblTglServis, gbc);
-        gbc.gridx = 1; gbc.weightx = 0.7;
+        gbc.gridy = 4;
+        JLabel lblTglServis = new JLabel("Tanggal Servis (YYYY-MM-DD)");
+        lblTglServis.setFont(labelFont);
+        lblTglServis.setForeground(NAVY_BLUE);
+        formCard.add(lblTglServis, gbc);
+
+        gbc.gridy = 5;
         txtTanggalServis = new JTextField(LocalDate.now().toString());
         txtTanggalServis.setFont(new Font("Segoe UI", Font.PLAIN, 13));
-        txtTanggalServis.setPreferredSize(new Dimension(200, 30));
-        txtTanggalServis.setBorder(BorderFactory.createLineBorder(new Color(200, 200, 200), 1));
-        inputsGrid.add(txtTanggalServis, gbc);
+        txtTanggalServis.setPreferredSize(new Dimension(300, 36));
+        formCard.add(txtTanggalServis, gbc);
 
-        // Jam Servis Dropdown
-        gbc.gridx = 0; gbc.gridy = 3; gbc.weightx = 0.3;
+        // Jam Servis
+        gbc.gridy = 6;
         JLabel lblJamServis = new JLabel("Jam Servis");
-        lblJamServis.setFont(new Font("Georgia", Font.PLAIN, 15));
-        inputsGrid.add(lblJamServis, gbc);
-        gbc.gridx = 1; gbc.weightx = 0.7;
+        lblJamServis.setFont(labelFont);
+        lblJamServis.setForeground(NAVY_BLUE);
+        formCard.add(lblJamServis, gbc);
+
+        gbc.gridy = 7;
         cmbJamServis = new JComboBox<>(new String[]{
             "08:00", "09:00", "10:00", "11:00", "13:00", "14:00", "15:00", "16:00"
         });
         cmbJamServis.setFont(new Font("Segoe UI", Font.PLAIN, 13));
-        cmbJamServis.setPreferredSize(new Dimension(200, 30));
-        inputsGrid.add(cmbJamServis, gbc);
+        cmbJamServis.setPreferredSize(new Dimension(300, 36));
+        formCard.add(cmbJamServis, gbc);
 
         // Keluhan
-        gbc.gridx = 0; gbc.gridy = 4; gbc.weightx = 0.3;
-        gbc.anchor = GridBagConstraints.NORTHWEST;
-        JLabel lblKeluhan = new JLabel("Keluhan");
-        lblKeluhan.setFont(new Font("Georgia", Font.PLAIN, 15));
-        inputsGrid.add(lblKeluhan, gbc);
-        gbc.gridx = 1; gbc.weightx = 0.7;
-        gbc.anchor = GridBagConstraints.CENTER;
-        txtKeluhan = new JTextArea(4, 20);
+        gbc.gridy = 8;
+        JLabel lblKeluhan = new JLabel("Deskripsi Keluhan / Catatan Servis");
+        lblKeluhan.setFont(labelFont);
+        lblKeluhan.setForeground(NAVY_BLUE);
+        formCard.add(lblKeluhan, gbc);
+
+        gbc.gridy = 9;
+        txtKeluhan = new JTextArea(3, 20);
         txtKeluhan.setFont(new Font("Segoe UI", Font.PLAIN, 13));
         txtKeluhan.setLineWrap(true);
         txtKeluhan.setWrapStyleWord(true);
-        txtKeluhan.setBorder(BorderFactory.createLineBorder(new Color(200, 200, 200), 1));
         JScrollPane scrollKeluhan = new JScrollPane(txtKeluhan);
-        inputsGrid.add(scrollKeluhan, gbc);
+        scrollKeluhan.setPreferredSize(new Dimension(300, 70));
+        formCard.add(scrollKeluhan, gbc);
 
-        cardBuatReservasi.add(inputsGrid, BorderLayout.CENTER);
+        cardBuatReservasi.add(formCard, BorderLayout.CENTER);
 
         // Bottom buttons
-        JPanel buttonsBar = new JPanel(new FlowLayout(FlowLayout.LEFT, 15, 0));
-        buttonsBar.setBackground(new Color(244, 244, 244));
+        JPanel buttonsBar = new JPanel(new FlowLayout(FlowLayout.RIGHT, 12, 0));
+        buttonsBar.setOpaque(false);
         buttonsBar.setBorder(new EmptyBorder(15, 0, 0, 0));
 
-        JButton btnSimpan = new JButton("Simpan Reservasi");
+        JButton btnSimpan = new JButton("Kirim Reservasi");
         btnSimpan.setFont(new Font("Segoe UI", Font.BOLD, 13));
-        btnSimpan.setBackground(GREEN_BUTTON);
+        btnSimpan.setBackground(ACTIVE_BLUE);
         btnSimpan.setForeground(Color.WHITE);
-        btnSimpan.setPreferredSize(new Dimension(160, 36));
+        btnSimpan.setPreferredSize(new Dimension(150, 38));
         btnSimpan.setFocusPainted(false);
         btnSimpan.addActionListener(new ActionListener() {
             @Override
@@ -340,8 +497,8 @@ public class PelangganDashboardFrame extends JFrame {
         JButton btnBatalForm = new JButton("Batal");
         btnBatalForm.setFont(new Font("Segoe UI", Font.BOLD, 13));
         btnBatalForm.setBackground(GRAY_BUTTON);
-        btnBatalForm.setForeground(Color.BLACK);
-        btnBatalForm.setPreferredSize(new Dimension(100, 36));
+        btnBatalForm.setForeground(NAVY_BLUE);
+        btnBatalForm.setPreferredSize(new Dimension(100, 38));
         btnBatalForm.setFocusPainted(false);
         btnBatalForm.addActionListener(new ActionListener() {
             @Override
@@ -354,19 +511,19 @@ public class PelangganDashboardFrame extends JFrame {
             }
         });
 
-        buttonsBar.add(btnSimpan);
         buttonsBar.add(btnBatalForm);
+        buttonsBar.add(btnSimpan);
         cardBuatReservasi.add(buttonsBar, BorderLayout.SOUTH);
     }
 
     // --- CARD 3: STATUS RESERVASI LIST ---
     private void createStatusReservasiCard() {
         cardStatusReservasi = new JPanel(new BorderLayout());
-        cardStatusReservasi.setBackground(new Color(244, 244, 244));
+        cardStatusReservasi.setBackground(BG_LIGHT);
         cardStatusReservasi.setBorder(new EmptyBorder(30, 40, 30, 40));
 
-        JLabel lblHeading = new JLabel("STATUS RESERVASI");
-        lblHeading.setFont(new Font("Georgia", Font.BOLD, 36));
+        JLabel lblHeading = new JLabel("Status & Riwayat Reservasi");
+        lblHeading.setFont(new Font("Segoe UI", Font.BOLD, 28));
         lblHeading.setForeground(NAVY_BLUE);
         lblHeading.setBorder(new EmptyBorder(0, 0, 20, 0));
         cardStatusReservasi.add(lblHeading, BorderLayout.NORTH);
@@ -379,22 +536,26 @@ public class PelangganDashboardFrame extends JFrame {
         };
         tblHistory = new JTable(tableModel);
         tblHistory.setDefaultRenderer(Object.class, new StatusRenderer());
-        tblHistory.setRowHeight(22);
-        tblHistory.setFont(new Font("Segoe UI", Font.PLAIN, 12));
-        tblHistory.getTableHeader().setFont(new Font("Georgia", Font.BOLD, 12));
+        tblHistory.setRowHeight(32);
+        tblHistory.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+        tblHistory.getTableHeader().setFont(new Font("Segoe UI", Font.BOLD, 12));
+        tblHistory.setShowVerticalLines(false);
+        tblHistory.setIntercellSpacing(new Dimension(0, 1));
+        
         JScrollPane scrollTable = new JScrollPane(tblHistory);
+        scrollTable.setBorder(BorderFactory.createLineBorder(new Color(226, 232, 240), 1));
         cardStatusReservasi.add(scrollTable, BorderLayout.CENTER);
 
         // Bottom Controls
-        JPanel controlPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 15, 0));
-        controlPanel.setBackground(new Color(244, 244, 244));
+        JPanel controlPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 12, 0));
+        controlPanel.setOpaque(false);
         controlPanel.setBorder(new EmptyBorder(15, 0, 0, 0));
 
         JButton btnDetail = new JButton("Lihat Detail Status");
-        btnDetail.setFont(new Font("Segoe UI", Font.BOLD, 12));
+        btnDetail.setFont(new Font("Segoe UI", Font.BOLD, 13));
         btnDetail.setBackground(ACTIVE_BLUE);
         btnDetail.setForeground(Color.WHITE);
-        btnDetail.setPreferredSize(new Dimension(160, 32));
+        btnDetail.setPreferredSize(new Dimension(160, 38));
         btnDetail.setFocusPainted(false);
         btnDetail.addActionListener(new ActionListener() {
             @Override
@@ -411,10 +572,10 @@ public class PelangganDashboardFrame extends JFrame {
         });
 
         JButton btnBatal = new JButton("Batalkan Reservasi");
-        btnBatal.setFont(new Font("Segoe UI", Font.BOLD, 12));
-        btnBatal.setBackground(new Color(220, 53, 69)); // Bootstrap Danger Red
+        btnBatal.setFont(new Font("Segoe UI", Font.BOLD, 13));
+        btnBatal.setBackground(new Color(239, 68, 68)); // Slate Red-500
         btnBatal.setForeground(Color.WHITE);
-        btnBatal.setPreferredSize(new Dimension(160, 32));
+        btnBatal.setPreferredSize(new Dimension(160, 38));
         btnBatal.setFocusPainted(false);
         btnBatal.addActionListener(new ActionListener() {
             @Override
@@ -456,10 +617,10 @@ public class PelangganDashboardFrame extends JFrame {
         });
 
         JButton btnRefreshList = new JButton("Refresh");
-        btnRefreshList.setFont(new Font("Segoe UI", Font.BOLD, 12));
+        btnRefreshList.setFont(new Font("Segoe UI", Font.BOLD, 13));
         btnRefreshList.setBackground(GRAY_BUTTON);
-        btnRefreshList.setForeground(Color.BLACK);
-        btnRefreshList.setPreferredSize(new Dimension(100, 32));
+        btnRefreshList.setForeground(NAVY_BLUE);
+        btnRefreshList.setPreferredSize(new Dimension(100, 38));
         btnRefreshList.setFocusPainted(false);
         btnRefreshList.addActionListener(new ActionListener() {
             @Override
@@ -477,47 +638,48 @@ public class PelangganDashboardFrame extends JFrame {
     // --- CARD 4: RESERVASI DETAILS CARD (Screenshot 4) ---
     private void createStatusDetailCard() {
         cardStatusDetail = new JPanel(new BorderLayout());
-        cardStatusDetail.setBackground(new Color(244, 244, 244));
-        cardStatusDetail.setBorder(new EmptyBorder(35, 50, 35, 50));
+        cardStatusDetail.setBackground(BG_LIGHT);
+        cardStatusDetail.setBorder(new EmptyBorder(30, 40, 30, 40));
 
-        JLabel lblHeading = new JLabel("STATUS RESERVASI");
-        lblHeading.setFont(new Font("Georgia", Font.BOLD, 36));
+        JLabel lblHeading = new JLabel("Detail Status Reservasi");
+        lblHeading.setFont(new Font("Segoe UI", Font.BOLD, 28));
         lblHeading.setForeground(NAVY_BLUE);
-        lblHeading.setBorder(new EmptyBorder(0, 0, 25, 0));
+        lblHeading.setBorder(new EmptyBorder(0, 0, 20, 0));
         cardStatusDetail.add(lblHeading, BorderLayout.NORTH);
 
-        // Details grid
-        JPanel detailGrid = new JPanel(new GridBagLayout());
-        detailGrid.setBackground(new Color(244, 244, 244));
-        GridBagConstraints gbc = new GridBagConstraints();
-        gbc.fill = GridBagConstraints.HORIZONTAL;
-        gbc.insets = new Insets(10, 10, 10, 10);
-        gbc.anchor = GridBagConstraints.WEST;
+        // Details card container
+        JPanel detailCard = new JPanel(new GridBagLayout());
+        detailCard.setBackground(Color.WHITE);
+        detailCard.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(new Color(226, 232, 240), 1, true),
+            BorderFactory.createEmptyBorder(24, 32, 24, 32)
+        ));
 
         // Fonts
-        Font fieldLabelFont = new Font("Georgia", Font.PLAIN, 16);
-        Font fieldValueFont = new Font("Segoe UI", Font.PLAIN, 15);
+        Font fieldLabelFont = new Font("Segoe UI", Font.BOLD, 13);
+        Font fieldValueFont = new Font("Segoe UI", Font.PLAIN, 14);
 
         // Helper method to add details
-        addDetailRow(detailGrid, "No. Reservasi :", lblDetailNoRes = new JLabel(), 0, fieldLabelFont, fieldValueFont);
-        addDetailRow(detailGrid, "Tanggal Reservasi :", lblDetailTglRes = new JLabel(), 1, fieldLabelFont, fieldValueFont);
-        addDetailRow(detailGrid, "Kendaraan :", lblDetailKendaraan = new JLabel(), 2, fieldLabelFont, fieldValueFont);
-        addDetailRow(detailGrid, "Tanggal Servis :", lblDetailTglServis = new JLabel(), 3, fieldLabelFont, fieldValueFont);
-        addDetailRow(detailGrid, "Jam Servis :", lblDetailJamServis = new JLabel(), 4, fieldLabelFont, fieldValueFont);
-        addDetailRow(detailGrid, "Keluhan :", lblDetailKeluhan = new JLabel(), 5, fieldLabelFont, fieldValueFont);
-        addDetailRow(detailGrid, "Status :", lblDetailStatus = new JLabel(), 6, fieldLabelFont, fieldValueFont);
+        addDetailRow(detailCard, "No. Reservasi", lblDetailNoRes = new JLabel(), 0, fieldLabelFont, fieldValueFont);
+        addDetailRow(detailCard, "Tanggal Reservasi", lblDetailTglRes = new JLabel(), 1, fieldLabelFont, fieldValueFont);
+        addDetailRow(detailCard, "Kendaraan", lblDetailKendaraan = new JLabel(), 2, fieldLabelFont, fieldValueFont);
+        addDetailRow(detailCard, "Tanggal Servis", lblDetailTglServis = new JLabel(), 3, fieldLabelFont, fieldValueFont);
+        addDetailRow(detailCard, "Jam Servis", lblDetailJamServis = new JLabel(), 4, fieldLabelFont, fieldValueFont);
+        addDetailRow(detailCard, "Keluhan", lblDetailKeluhan = new JLabel(), 5, fieldLabelFont, fieldValueFont);
+        addDetailRow(detailCard, "Status", lblDetailStatus = new JLabel(), 6, fieldLabelFont, fieldValueFont);
 
-        cardStatusDetail.add(detailGrid, BorderLayout.CENTER);
+        cardStatusDetail.add(detailCard, BorderLayout.CENTER);
 
-        // KEMBALI button (italic, bold)
+        // KEMBALI button
         JPanel backPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-        backPanel.setBackground(new Color(244, 244, 244));
+        backPanel.setOpaque(false);
+        backPanel.setBorder(new EmptyBorder(15, 0, 0, 0));
         
-        JButton btnKembali = new JButton("KEMBALI");
-        btnKembali.setFont(new Font("Georgia", Font.BOLD | Font.ITALIC, 14));
+        JButton btnKembali = new JButton("Kembali");
+        btnKembali.setFont(new Font("Segoe UI", Font.BOLD, 13));
         btnKembali.setBackground(GRAY_BUTTON);
-        btnKembali.setForeground(Color.BLACK);
-        btnKembali.setPreferredSize(new Dimension(130, 36));
+        btnKembali.setForeground(NAVY_BLUE);
+        btnKembali.setPreferredSize(new Dimension(110, 38));
         btnKembali.setFocusPainted(false);
         btnKembali.addActionListener(new ActionListener() {
             @Override
@@ -532,67 +694,77 @@ public class PelangganDashboardFrame extends JFrame {
     private void addDetailRow(JPanel panel, String labelText, JLabel valueLabel, int row, Font labelFont, Font valueFont) {
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.anchor = GridBagConstraints.WEST;
-        gbc.insets = new Insets(8, 8, 8, 8);
+        gbc.insets = new Insets(10, 10, 10, 10);
         gbc.gridy = row;
 
         gbc.gridx = 0;
-        gbc.weightx = 0.4;
+        gbc.weightx = 0.35;
         JLabel lbl = new JLabel(labelText);
         lbl.setFont(labelFont);
-        lbl.setForeground(Color.BLACK);
+        lbl.setForeground(TEXT_MUTED);
         panel.add(lbl, gbc);
 
         gbc.gridx = 1;
-        gbc.weightx = 0.6;
+        gbc.weightx = 0.65;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
         valueLabel.setFont(valueFont);
-        valueLabel.setForeground(Color.BLACK);
+        valueLabel.setForeground(NAVY_BLUE);
         panel.add(valueLabel, gbc);
     }
 
     // --- CARD 5: CUSTOMER PROFILE VIEW ---
     private void createProfilCard() {
-        cardProfil = new JPanel(new GridBagLayout());
-        cardProfil.setBackground(new Color(244, 244, 244));
-        GridBagConstraints gbc = new GridBagConstraints();
-        gbc.insets = new Insets(10, 10, 10, 10);
-        gbc.anchor = GridBagConstraints.WEST;
+        cardProfil = new JPanel(new BorderLayout());
+        cardProfil.setBackground(BG_LIGHT);
+        cardProfil.setBorder(new EmptyBorder(30, 40, 30, 40));
 
-        JLabel lblTitle = new JLabel("PROFIL PELANGGAN");
-        lblTitle.setFont(new Font("Georgia", Font.BOLD, 28));
+        JLabel lblTitle = new JLabel("Profil Pelanggan");
+        lblTitle.setFont(new Font("Segoe UI", Font.BOLD, 28));
         lblTitle.setForeground(NAVY_BLUE);
-        gbc.gridx = 0; gbc.gridy = 0; gbc.gridwidth = 2;
-        gbc.anchor = GridBagConstraints.CENTER;
-        gbc.insets = new Insets(10, 10, 30, 10);
-        cardProfil.add(lblTitle, gbc);
+        lblTitle.setBorder(new EmptyBorder(0, 0, 20, 0));
+        cardProfil.add(lblTitle, BorderLayout.NORTH);
 
-        gbc.gridwidth = 1;
-        gbc.anchor = GridBagConstraints.WEST;
-        gbc.insets = new Insets(10, 10, 10, 10);
+        JPanel profileCard = new JPanel(new GridBagLayout());
+        profileCard.setBackground(Color.WHITE);
+        profileCard.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(new Color(226, 232, 240), 1, true),
+            BorderFactory.createEmptyBorder(24, 32, 24, 32)
+        ));
 
-        Font gFont = new Font("Georgia", Font.PLAIN, 15);
+        Font labelFont = new Font("Segoe UI", Font.BOLD, 13);
+        Font valFont = new Font("Segoe UI", Font.PLAIN, 14);
 
         // Fetch session data
-        addProfileRow(cardProfil, "ID Pelanggan :", String.valueOf(Session.getIdPelanggan()), 1, gFont);
-        addProfileRow(cardProfil, "Nama Lengkap :", Session.getNama(), 2, gFont);
-        // We can look up other details or display available ones
-        addProfileRow(cardProfil, "Username :", Session.getUsername(), 3, gFont);
+        addProfileRow(profileCard, "ID Pelanggan", String.valueOf(Session.getIdPelanggan()), 0, labelFont, valFont);
+        addProfileRow(profileCard, "Nama Lengkap", Session.getNama(), 1, labelFont, valFont);
+        addProfileRow(profileCard, "Username", Session.getUsername(), 2, labelFont, valFont);
+
+        cardProfil.add(profileCard, BorderLayout.CENTER);
+        
+        // Add glue at south to keep it compact
+        JPanel southPanel = new JPanel();
+        southPanel.setOpaque(false);
+        cardProfil.add(southPanel, BorderLayout.SOUTH);
     }
 
-    private void addProfileRow(JPanel panel, String labelText, String valueText, int row, Font labelFont) {
+    private void addProfileRow(JPanel panel, String labelText, String valueText, int row, Font labelFont, Font valueFont) {
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.anchor = GridBagConstraints.WEST;
-        gbc.insets = new Insets(8, 15, 8, 15);
+        gbc.insets = new Insets(12, 15, 12, 15);
         gbc.gridy = row;
 
         gbc.gridx = 0;
+        gbc.weightx = 0.35;
         JLabel lbl = new JLabel(labelText);
         lbl.setFont(labelFont);
-        lbl.setForeground(Color.BLACK);
+        lbl.setForeground(TEXT_MUTED);
         panel.add(lbl, gbc);
 
         gbc.gridx = 1;
+        gbc.weightx = 0.65;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
         JLabel val = new JLabel(valueText);
-        val.setFont(new Font("Segoe UI", Font.BOLD, 15));
+        val.setFont(valueFont);
         val.setForeground(NAVY_BLUE);
         panel.add(val, gbc);
     }

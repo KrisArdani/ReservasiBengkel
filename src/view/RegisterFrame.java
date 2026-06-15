@@ -3,7 +3,6 @@ package view;
 import controller.AuthController;
 
 import javax.swing.*;
-import javax.swing.border.EmptyBorder;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -19,9 +18,11 @@ public class RegisterFrame extends JFrame {
     private JButton btnBatal;
     private AuthController authController;
 
-    private static final Color NAVY_BLUE = new Color(0, 32, 96); // #002060
-    private static final Color GREEN_BUTTON = new Color(40, 167, 69); // #28A745
-    private static final Color GRAY_BUTTON = new Color(214, 214, 214); // #D6D6D6
+    private static final Color PRIMARY_BLUE = new Color(37, 99, 235); // #2563EB (Royal Blue)
+    private static final Color GRAY_BUTTON = new Color(241, 245, 249); // #F1F5F9 (slate-100)
+    private static final Color TEXT_DARK = new Color(15, 23, 42); // #0F172A
+    private static final Color TEXT_MUTED = new Color(100, 116, 139); // #64748B
+    private static final Color BG_LIGHT = new Color(248, 250, 252); // #F8FAFC
 
     public RegisterFrame() {
         authController = new AuthController();
@@ -31,123 +32,141 @@ public class RegisterFrame extends JFrame {
     private void initializeUI() {
         setTitle("Registrasi Pelanggan");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setSize(480, 520);
+        setSize(480, 680);
         setLocationRelativeTo(null);
         setResizable(false);
 
-        // Main Panel
-        JPanel mainPanel = new JPanel();
-        mainPanel.setLayout(new GridBagLayout());
-        mainPanel.setBackground(new Color(244, 244, 244));
-        mainPanel.setBorder(new EmptyBorder(20, 30, 20, 30));
+        // Main Background Panel
+        JPanel mainPanel = new JPanel(new GridBagLayout());
+        mainPanel.setBackground(BG_LIGHT);
         setContentPane(mainPanel);
+
+        // Card Panel Container
+        JPanel cardPanel = new JPanel(new GridBagLayout());
+        cardPanel.setBackground(Color.WHITE);
+        cardPanel.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(new Color(226, 232, 240), 1, true),
+            BorderFactory.createEmptyBorder(24, 32, 24, 32)
+        ));
 
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.fill = GridBagConstraints.HORIZONTAL;
-        gbc.insets = new Insets(6, 8, 6, 8);
-
-        // Title: REGISTRASI PELANGGAN
+        gbc.insets = new Insets(4, 0, 4, 0);
         gbc.gridx = 0;
+
+        // Title: REGISTRASI
         gbc.gridy = 0;
-        gbc.gridwidth = 2;
-        JLabel lblTitle = new JLabel("REGISTRASI PELANGGAN", JLabel.CENTER);
-        lblTitle.setFont(new Font("Georgia", Font.BOLD, 24));
-        lblTitle.setForeground(NAVY_BLUE);
-        gbc.insets = new Insets(10, 8, 20, 8);
-        mainPanel.add(lblTitle, gbc);
+        JLabel lblTitle = new JLabel("Registrasi Pelanggan", JLabel.CENTER);
+        lblTitle.setFont(new Font("Segoe UI", Font.BOLD, 22));
+        lblTitle.setForeground(TEXT_DARK);
+        cardPanel.add(lblTitle, gbc);
 
-        // Reset settings
-        gbc.insets = new Insets(6, 8, 6, 8);
-        gbc.gridwidth = 1;
+        // Subtitle
+        gbc.gridy = 1;
+        JLabel lblSub = new JLabel("Silakan lengkapi data diri Anda di bawah ini", JLabel.CENTER);
+        lblSub.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+        lblSub.setForeground(TEXT_MUTED);
+        gbc.insets = new Insets(0, 0, 12, 0); // extra bottom spacing
+        cardPanel.add(lblSub, gbc);
 
-        // Form Fields
+        // Reset inset
+        gbc.insets = new Insets(4, 0, 4, 0);
 
-        
         // Nama Lengkap
-        gbc.gridx = 0; gbc.gridy = 1; gbc.weightx = 0.35;
+        gbc.gridy = 2;
         JLabel lblNama = new JLabel("Nama Lengkap");
-        lblNama.setFont(new Font("Georgia", Font.PLAIN, 14));
-        mainPanel.add(lblNama, gbc);
-        gbc.gridx = 1; gbc.weightx = 0.65;
+        lblNama.setFont(new Font("Segoe UI", Font.BOLD, 12));
+        lblNama.setForeground(TEXT_DARK);
+        cardPanel.add(lblNama, gbc);
+
+        gbc.gridy = 3;
         txtNama = new JTextField();
-        txtNama.setFont(new Font("Georgia", Font.PLAIN, 13));
-        txtNama.setPreferredSize(new Dimension(200, 28));
-        txtNama.setBorder(BorderFactory.createLineBorder(new Color(200, 200, 200), 1));
-        mainPanel.add(txtNama, gbc);
+        txtNama.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+        txtNama.setPreferredSize(new Dimension(340, 32));
+        txtNama.putClientProperty("JTextField.placeholderText", "Nama Lengkap Anda");
+        cardPanel.add(txtNama, gbc);
 
         // Alamat
-        gbc.gridx = 0; gbc.gridy = 2; gbc.weightx = 0.35;
+        gbc.gridy = 4;
         JLabel lblAlamat = new JLabel("Alamat");
-        lblAlamat.setFont(new Font("Georgia", Font.PLAIN, 14));
-        mainPanel.add(lblAlamat, gbc);
-        gbc.gridx = 1; gbc.weightx = 0.65;
+        lblAlamat.setFont(new Font("Segoe UI", Font.BOLD, 12));
+        lblAlamat.setForeground(TEXT_DARK);
+        cardPanel.add(lblAlamat, gbc);
+
+        gbc.gridy = 5;
         txtAlamat = new JTextField();
-        txtAlamat.setFont(new Font("Georgia", Font.PLAIN, 13));
-        txtAlamat.setPreferredSize(new Dimension(200, 28));
-        txtAlamat.setBorder(BorderFactory.createLineBorder(new Color(200, 200, 200), 1));
-        mainPanel.add(txtAlamat, gbc);
+        txtAlamat.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+        txtAlamat.setPreferredSize(new Dimension(340, 32));
+        txtAlamat.putClientProperty("JTextField.placeholderText", "Alamat Tinggal Anda");
+        cardPanel.add(txtAlamat, gbc);
 
         // No. Telepon
-        gbc.gridx = 0; gbc.gridy = 3; gbc.weightx = 0.35;
+        gbc.gridy = 6;
         JLabel lblNoHp = new JLabel("No. Telepon");
-        lblNoHp.setFont(new Font("Georgia", Font.PLAIN, 14));
-        mainPanel.add(lblNoHp, gbc);
-        gbc.gridx = 1; gbc.weightx = 0.65;
+        lblNoHp.setFont(new Font("Segoe UI", Font.BOLD, 12));
+        lblNoHp.setForeground(TEXT_DARK);
+        cardPanel.add(lblNoHp, gbc);
+
+        gbc.gridy = 7;
         txtNoHp = new JTextField();
-        txtNoHp.setFont(new Font("Georgia", Font.PLAIN, 13));
-        txtNoHp.setPreferredSize(new Dimension(200, 28));
-        txtNoHp.setBorder(BorderFactory.createLineBorder(new Color(200, 200, 200), 1));
-        mainPanel.add(txtNoHp, gbc);
+        txtNoHp.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+        txtNoHp.setPreferredSize(new Dimension(340, 32));
+        txtNoHp.putClientProperty("JTextField.placeholderText", "Contoh: 081234567890");
+        cardPanel.add(txtNoHp, gbc);
 
         // Username
-        gbc.gridx = 0; gbc.gridy = 4; gbc.weightx = 0.35;
+        gbc.gridy = 8;
         JLabel lblUser = new JLabel("Username");
-        lblUser.setFont(new Font("Georgia", Font.PLAIN, 14));
-        mainPanel.add(lblUser, gbc);
-        gbc.gridx = 1; gbc.weightx = 0.65;
+        lblUser.setFont(new Font("Segoe UI", Font.BOLD, 12));
+        lblUser.setForeground(TEXT_DARK);
+        cardPanel.add(lblUser, gbc);
+
+        gbc.gridy = 9;
         txtUsername = new JTextField();
-        txtUsername.setFont(new Font("Georgia", Font.PLAIN, 13));
-        txtUsername.setPreferredSize(new Dimension(200, 28));
-        txtUsername.setBorder(BorderFactory.createLineBorder(new Color(200, 200, 200), 1));
-        mainPanel.add(txtUsername, gbc);
+        txtUsername.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+        txtUsername.setPreferredSize(new Dimension(340, 32));
+        txtUsername.putClientProperty("JTextField.placeholderText", "Pilih Username");
+        cardPanel.add(txtUsername, gbc);
 
         // Password
-        gbc.gridx = 0; gbc.gridy = 5; gbc.weightx = 0.35;
+        gbc.gridy = 10;
         JLabel lblPass = new JLabel("Password");
-        lblPass.setFont(new Font("Georgia", Font.PLAIN, 14));
-        mainPanel.add(lblPass, gbc);
-        gbc.gridx = 1; gbc.weightx = 0.65;
+        lblPass.setFont(new Font("Segoe UI", Font.BOLD, 12));
+        lblPass.setForeground(TEXT_DARK);
+        cardPanel.add(lblPass, gbc);
+
+        gbc.gridy = 11;
         txtPassword = new JPasswordField();
-        txtPassword.setFont(new Font("Georgia", Font.PLAIN, 13));
-        txtPassword.setPreferredSize(new Dimension(200, 28));
-        txtPassword.setBorder(BorderFactory.createLineBorder(new Color(200, 200, 200), 1));
-        mainPanel.add(txtPassword, gbc);
+        txtPassword.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+        txtPassword.setPreferredSize(new Dimension(340, 32));
+        txtPassword.putClientProperty("JTextField.placeholderText", "Buat Password");
+        cardPanel.add(txtPassword, gbc);
 
         // Konfirmasi Password
-        gbc.gridx = 0; gbc.gridy = 6; gbc.weightx = 0.35;
+        gbc.gridy = 12;
         JLabel lblConfirm = new JLabel("Konfirmasi Password");
-        lblConfirm.setFont(new Font("Georgia", Font.PLAIN, 14));
-        mainPanel.add(lblConfirm, gbc);
-        gbc.gridx = 1; gbc.weightx = 0.65;
+        lblConfirm.setFont(new Font("Segoe UI", Font.BOLD, 12));
+        lblConfirm.setForeground(TEXT_DARK);
+        cardPanel.add(lblConfirm, gbc);
+
+        gbc.gridy = 13;
         txtConfirmPassword = new JPasswordField();
-        txtConfirmPassword.setFont(new Font("Georgia", Font.PLAIN, 13));
-        txtConfirmPassword.setPreferredSize(new Dimension(200, 28));
-        txtConfirmPassword.setBorder(BorderFactory.createLineBorder(new Color(200, 200, 200), 1));
-        mainPanel.add(txtConfirmPassword, gbc);
+        txtConfirmPassword.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+        txtConfirmPassword.setPreferredSize(new Dimension(340, 32));
+        txtConfirmPassword.putClientProperty("JTextField.placeholderText", "Ulangi Password");
+        cardPanel.add(txtConfirmPassword, gbc);
 
         // Buttons Panel (Daftar & Batal)
-        gbc.gridx = 0;
-        gbc.gridy = 7;
-        gbc.gridwidth = 2;
-        gbc.insets = new Insets(25, 8, 10, 8);
-        JPanel buttonPanel = new JPanel(new GridLayout(1, 2, 25, 0));
-        buttonPanel.setBackground(new Color(244, 244, 244));
+        gbc.gridy = 14;
+        gbc.insets = new Insets(18, 0, 0, 0);
+        JPanel buttonPanel = new JPanel(new GridLayout(1, 2, 16, 0));
+        buttonPanel.setBackground(Color.WHITE);
 
         btnRegister = new JButton("Daftar");
-        btnRegister.setFont(new Font("Segoe UI", Font.BOLD, 14));
-        btnRegister.setBackground(GREEN_BUTTON);
+        btnRegister.setFont(new Font("Segoe UI", Font.BOLD, 13));
+        btnRegister.setBackground(PRIMARY_BLUE);
         btnRegister.setForeground(Color.WHITE);
-        btnRegister.setPreferredSize(new Dimension(110, 36));
+        btnRegister.setPreferredSize(new Dimension(130, 38));
         btnRegister.setFocusPainted(false);
         btnRegister.addActionListener(new ActionListener() {
             @Override
@@ -157,10 +176,10 @@ public class RegisterFrame extends JFrame {
         });
 
         btnBatal = new JButton("Batal");
-        btnBatal.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        btnBatal.setFont(new Font("Segoe UI", Font.BOLD, 13));
         btnBatal.setBackground(GRAY_BUTTON);
-        btnBatal.setForeground(Color.BLACK);
-        btnBatal.setPreferredSize(new Dimension(110, 36));
+        btnBatal.setForeground(TEXT_DARK);
+        btnBatal.setPreferredSize(new Dimension(130, 38));
         btnBatal.setFocusPainted(false);
         btnBatal.addActionListener(new ActionListener() {
             @Override
@@ -172,7 +191,9 @@ public class RegisterFrame extends JFrame {
 
         buttonPanel.add(btnRegister);
         buttonPanel.add(btnBatal);
-        mainPanel.add(buttonPanel, gbc);
+        cardPanel.add(buttonPanel, gbc);
+
+        mainPanel.add(cardPanel);
     }
 
     private void handleRegister() {

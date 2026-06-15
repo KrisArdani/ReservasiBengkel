@@ -5,7 +5,6 @@ import model.User;
 import config.Session;
 
 import javax.swing.*;
-import javax.swing.border.EmptyBorder;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -20,9 +19,11 @@ public class LoginFrame extends JFrame {
     private JButton btnBatal;
     private AuthController authController;
 
-    private static final Color NAVY_BLUE = new Color(0, 32, 96); // #002060
-    private static final Color GREEN_BUTTON = new Color(40, 167, 69); // #28A745
-    private static final Color GRAY_BUTTON = new Color(214, 214, 214); // #D6D6D6
+    private static final Color PRIMARY_BLUE = new Color(37, 99, 235); // #2563EB (Royal Blue)
+    private static final Color GRAY_BUTTON = new Color(241, 245, 249); // #F1F5F9 (slate-100)
+    private static final Color TEXT_DARK = new Color(15, 23, 42); // #0F172A
+    private static final Color TEXT_MUTED = new Color(100, 116, 139); // #64748B
+    private static final Color BG_LIGHT = new Color(248, 250, 252); // #F8FAFC
 
     public LoginFrame() {
         authController = new AuthController();
@@ -32,78 +33,83 @@ public class LoginFrame extends JFrame {
     private void initializeUI() {
         setTitle("Login - Sistem Reservasi Bengkel");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setSize(460, 480);
+        setSize(460, 520);
         setLocationRelativeTo(null);
         setResizable(false);
 
-        // Main Container Panel
-        JPanel mainPanel = new JPanel();
-        mainPanel.setLayout(new GridBagLayout());
-        mainPanel.setBackground(new Color(244, 244, 244)); // Off-white/light gray
-        mainPanel.setBorder(new EmptyBorder(30, 40, 30, 40));
+        // Main Background Panel
+        JPanel mainPanel = new JPanel(new GridBagLayout());
+        mainPanel.setBackground(BG_LIGHT);
         setContentPane(mainPanel);
+
+        // Card Panel Container
+        JPanel cardPanel = new JPanel(new GridBagLayout());
+        cardPanel.setBackground(Color.WHITE);
+        cardPanel.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(new Color(226, 232, 240), 1, true),
+            BorderFactory.createEmptyBorder(28, 32, 28, 32)
+        ));
 
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.fill = GridBagConstraints.HORIZONTAL;
-        gbc.insets = new Insets(8, 8, 8, 8);
-
-        // Title: LOGIN
+        gbc.insets = new Insets(6, 0, 6, 0);
         gbc.gridx = 0;
-        gbc.gridy = 0;
-        gbc.gridwidth = 2;
-        JLabel lblTitle = new JLabel("LOGIN", JLabel.CENTER);
-        lblTitle.setFont(new Font("Georgia", Font.BOLD, 42));
-        lblTitle.setForeground(NAVY_BLUE);
-        gbc.insets = new Insets(10, 8, 30, 8);
-        mainPanel.add(lblTitle, gbc);
 
-        // Reset insets
-        gbc.insets = new Insets(10, 8, 10, 8);
-        gbc.gridwidth = 1;
+        // Title: Welcome Back
+        gbc.gridy = 0;
+        JLabel lblTitle = new JLabel("Welcome Back", JLabel.CENTER);
+        lblTitle.setFont(new Font("Segoe UI", Font.BOLD, 26));
+        lblTitle.setForeground(TEXT_DARK);
+        cardPanel.add(lblTitle, gbc);
+
+        // Subtitle
+        gbc.gridy = 1;
+        JLabel lblSub = new JLabel("Login ke Sistem Reservasi Bengkel", JLabel.CENTER);
+        lblSub.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+        lblSub.setForeground(TEXT_MUTED);
+        gbc.insets = new Insets(0, 0, 20, 0); // extra bottom spacing
+        cardPanel.add(lblSub, gbc);
+
+        // Reset inset
+        gbc.insets = new Insets(6, 0, 6, 0);
 
         // Label Username
-        gbc.gridx = 0;
-        gbc.gridy = 1;
-        gbc.weightx = 0.3;
+        gbc.gridy = 2;
         JLabel lblUsername = new JLabel("Username");
-        lblUsername.setFont(new Font("Georgia", Font.PLAIN, 15));
-        lblUsername.setForeground(Color.BLACK);
-        mainPanel.add(lblUsername, gbc);
+        lblUsername.setFont(new Font("Segoe UI", Font.BOLD, 12));
+        lblUsername.setForeground(TEXT_DARK);
+        cardPanel.add(lblUsername, gbc);
 
         // Input Username
-        gbc.gridx = 1;
-        gbc.weightx = 0.7;
+        gbc.gridy = 3;
         txtUsername = new JTextField();
-        txtUsername.setFont(new Font("Georgia", Font.PLAIN, 14));
-        txtUsername.setPreferredSize(new Dimension(200, 32));
-        txtUsername.setBorder(BorderFactory.createLineBorder(new Color(200, 200, 200), 1));
-        mainPanel.add(txtUsername, gbc);
+        txtUsername.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+        txtUsername.setPreferredSize(new Dimension(300, 36));
+        txtUsername.putClientProperty("JTextField.placeholderText", "Masukkan username Anda");
+        cardPanel.add(txtUsername, gbc);
 
         // Label Password
-        gbc.gridx = 0;
-        gbc.gridy = 2;
-        gbc.weightx = 0.3;
+        gbc.gridy = 4;
         JLabel lblPassword = new JLabel("Password");
-        lblPassword.setFont(new Font("Georgia", Font.PLAIN, 15));
-        lblPassword.setForeground(Color.BLACK);
-        mainPanel.add(lblPassword, gbc);
+        lblPassword.setFont(new Font("Segoe UI", Font.BOLD, 12));
+        lblPassword.setForeground(TEXT_DARK);
+        cardPanel.add(lblPassword, gbc);
 
         // Input Password
-        gbc.gridx = 1;
-        gbc.weightx = 0.7;
+        gbc.gridy = 5;
         txtPassword = new JPasswordField();
-        txtPassword.setFont(new Font("Georgia", Font.PLAIN, 14));
-        txtPassword.setPreferredSize(new Dimension(200, 32));
-        txtPassword.setBorder(BorderFactory.createLineBorder(new Color(200, 200, 200), 1));
-        mainPanel.add(txtPassword, gbc);
+        txtPassword.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+        txtPassword.setPreferredSize(new Dimension(300, 36));
+        txtPassword.putClientProperty("JTextField.placeholderText", "Masukkan password Anda");
+        cardPanel.add(txtPassword, gbc);
 
         // Show Password Checkbox
-        gbc.gridx = 1;
-        gbc.gridy = 3;
-        gbc.weightx = 1.0;
+        gbc.gridy = 6;
+        gbc.insets = new Insets(2, 0, 15, 0);
         chkShowPassword = new JCheckBox("Tampilkan Password");
         chkShowPassword.setFont(new Font("Segoe UI", Font.PLAIN, 12));
-        chkShowPassword.setBackground(new Color(244, 244, 244));
+        chkShowPassword.setBackground(Color.WHITE);
+        chkShowPassword.setForeground(TEXT_MUTED);
         chkShowPassword.setFocusPainted(false);
         chkShowPassword.addActionListener(new ActionListener() {
             @Override
@@ -115,21 +121,19 @@ public class LoginFrame extends JFrame {
                 }
             }
         });
-        mainPanel.add(chkShowPassword, gbc);
+        cardPanel.add(chkShowPassword, gbc);
 
         // Buttons Panel (Login & Batal)
-        gbc.gridx = 0;
-        gbc.gridy = 4;
-        gbc.gridwidth = 2;
-        gbc.insets = new Insets(20, 8, 15, 8);
-        JPanel buttonPanel = new JPanel(new GridLayout(1, 2, 20, 0));
-        buttonPanel.setBackground(new Color(244, 244, 244));
+        gbc.gridy = 7;
+        gbc.insets = new Insets(5, 0, 12, 0);
+        JPanel buttonPanel = new JPanel(new GridLayout(1, 2, 12, 0));
+        buttonPanel.setBackground(Color.WHITE);
 
         btnLogin = new JButton("Login");
-        btnLogin.setFont(new Font("Segoe UI", Font.BOLD, 14));
-        btnLogin.setBackground(GREEN_BUTTON);
+        btnLogin.setFont(new Font("Segoe UI", Font.BOLD, 13));
+        btnLogin.setBackground(PRIMARY_BLUE);
         btnLogin.setForeground(Color.WHITE);
-        btnLogin.setPreferredSize(new Dimension(120, 36));
+        btnLogin.setPreferredSize(new Dimension(140, 38));
         btnLogin.setFocusPainted(false);
         btnLogin.addActionListener(new ActionListener() {
             @Override
@@ -138,11 +142,11 @@ public class LoginFrame extends JFrame {
             }
         });
 
-        btnBatal = new JButton("Batal");
-        btnBatal.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        btnBatal = new JButton("Reset");
+        btnBatal.setFont(new Font("Segoe UI", Font.BOLD, 13));
         btnBatal.setBackground(GRAY_BUTTON);
-        btnBatal.setForeground(Color.BLACK);
-        btnBatal.setPreferredSize(new Dimension(120, 36));
+        btnBatal.setForeground(TEXT_DARK);
+        btnBatal.setPreferredSize(new Dimension(140, 38));
         btnBatal.setFocusPainted(false);
         btnBatal.addActionListener(new ActionListener() {
             @Override
@@ -156,24 +160,21 @@ public class LoginFrame extends JFrame {
 
         buttonPanel.add(btnLogin);
         buttonPanel.add(btnBatal);
-        mainPanel.add(buttonPanel, gbc);
+        cardPanel.add(buttonPanel, gbc);
 
         // Bottom registration panel
-        gbc.gridy = 5;
-        gbc.insets = new Insets(10, 8, 5, 8);
-        JPanel regPanel = new JPanel();
-        regPanel.setLayout(new BoxLayout(regPanel, BoxLayout.Y_AXIS));
-        regPanel.setBackground(new Color(244, 244, 244));
+        gbc.gridy = 8;
+        gbc.insets = new Insets(8, 0, 0, 0);
+        JPanel regPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 5, 0));
+        regPanel.setBackground(Color.WHITE);
 
-        JLabel lblNoAccount = new JLabel("Belum punya akun?", JLabel.CENTER);
-        lblNoAccount.setFont(new Font("Georgia", Font.PLAIN, 14));
-        lblNoAccount.setAlignmentX(Component.CENTER_ALIGNMENT);
-        lblNoAccount.setForeground(Color.BLACK);
+        JLabel lblNoAccount = new JLabel("Belum punya akun?");
+        lblNoAccount.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+        lblNoAccount.setForeground(TEXT_MUTED);
 
-        JLabel lblRegLink = new JLabel("Silakan Registrasi", JLabel.CENTER);
-        lblRegLink.setFont(new Font("Georgia", Font.ITALIC | Font.BOLD, 14));
-        lblRegLink.setAlignmentX(Component.CENTER_ALIGNMENT);
-        lblRegLink.setForeground(NAVY_BLUE);
+        JLabel lblRegLink = new JLabel("Daftar Sekarang");
+        lblRegLink.setFont(new Font("Segoe UI", Font.BOLD, 13));
+        lblRegLink.setForeground(PRIMARY_BLUE);
         lblRegLink.setCursor(new Cursor(Cursor.HAND_CURSOR));
         lblRegLink.addMouseListener(new MouseAdapter() {
             @Override
@@ -184,9 +185,11 @@ public class LoginFrame extends JFrame {
         });
 
         regPanel.add(lblNoAccount);
-        regPanel.add(Box.createVerticalStrut(5));
         regPanel.add(lblRegLink);
-        mainPanel.add(regPanel, gbc);
+        cardPanel.add(regPanel, gbc);
+
+        // Add Card to Main Panel
+        mainPanel.add(cardPanel);
     }
 
     private void handleLogin() {
