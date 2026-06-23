@@ -18,11 +18,11 @@ public class RegisterFrame extends JFrame {
     private JButton btnBatal;
     private AuthController authController;
 
-    private static final Color PRIMARY_BLUE = new Color(37, 99, 235); // #2563EB (Royal Blue)
-    private static final Color GRAY_BUTTON = new Color(241, 245, 249); // #F1F5F9 (slate-100)
-    private static final Color TEXT_DARK = new Color(15, 23, 42); // #0F172A
-    private static final Color TEXT_MUTED = new Color(100, 116, 139); // #64748B
-    private static final Color BG_LIGHT = new Color(248, 250, 252); // #F8FAFC
+    private static final Color PRIMARY_RED = new Color(220, 38, 38); // #DC2626 (Crimson Red)
+    private static final Color GRAY_BUTTON = new Color(55, 65, 81); // #374151 (Slate 700)
+    private static final Color TEXT_DARK = new Color(248, 250, 252); // #F8FAFC
+    private static final Color TEXT_MUTED = new Color(156, 163, 175); // #9C9A9A
+    private static final Color BG_LIGHT = new Color(18, 18, 18); // #121212 (Matte Black)
 
     public RegisterFrame() {
         authController = new AuthController();
@@ -34,7 +34,7 @@ public class RegisterFrame extends JFrame {
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setSize(480, 680);
         setLocationRelativeTo(null);
-        setResizable(false);
+        setResizable(true);
 
         // Main Background Panel
         JPanel mainPanel = new JPanel(new GridBagLayout());
@@ -43,9 +43,9 @@ public class RegisterFrame extends JFrame {
 
         // Card Panel Container
         JPanel cardPanel = new JPanel(new GridBagLayout());
-        cardPanel.setBackground(Color.WHITE);
+        cardPanel.setBackground(new Color(30, 30, 30));
         cardPanel.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createLineBorder(new Color(226, 232, 240), 1, true),
+            BorderFactory.createLineBorder(new Color(64, 64, 64), 1, true),
             BorderFactory.createEmptyBorder(24, 32, 24, 32)
         ));
 
@@ -160,11 +160,11 @@ public class RegisterFrame extends JFrame {
         gbc.gridy = 14;
         gbc.insets = new Insets(18, 0, 0, 0);
         JPanel buttonPanel = new JPanel(new GridLayout(1, 2, 16, 0));
-        buttonPanel.setBackground(Color.WHITE);
+        buttonPanel.setOpaque(false);
 
         btnRegister = new JButton("Daftar");
         btnRegister.setFont(new Font("Segoe UI", Font.BOLD, 13));
-        btnRegister.setBackground(PRIMARY_BLUE);
+        btnRegister.setBackground(PRIMARY_RED);
         btnRegister.setForeground(Color.WHITE);
         btnRegister.setPreferredSize(new Dimension(130, 38));
         btnRegister.setFocusPainted(false);
@@ -178,7 +178,7 @@ public class RegisterFrame extends JFrame {
         btnBatal = new JButton("Batal");
         btnBatal.setFont(new Font("Segoe UI", Font.BOLD, 13));
         btnBatal.setBackground(GRAY_BUTTON);
-        btnBatal.setForeground(TEXT_DARK);
+        btnBatal.setForeground(Color.WHITE);
         btnBatal.setPreferredSize(new Dimension(130, 38));
         btnBatal.setFocusPainted(false);
         btnBatal.addActionListener(new ActionListener() {

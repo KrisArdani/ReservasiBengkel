@@ -73,13 +73,15 @@ public class AdminDashboardFrame extends JFrame {
     private JLabel lblWidgetSelesai;
     private JLabel lblWidgetMontir;
 
-    private static final Color NAVY_BLUE = new Color(15, 23, 42); // #0F172A (Slate 900)
-    private static final Color ACTIVE_BLUE = new Color(37, 99, 235); // #2563EB (Royal Blue)
+    private static final Color NAVY_BLUE = new Color(248, 250, 252); // #F8FAFC (Slate 50)
+    private static final Color ACTIVE_RED = new Color(185, 28, 28); // #B91C1C (Red 700)
     private static final Color GREEN_BUTTON = new Color(16, 185, 129); // #10B981 (Emerald Green)
-    private static final Color GRAY_BUTTON = new Color(241, 245, 249); // #F1F5F9 (slate-100)
-    private static final Color SIDEBAR_BG = new Color(15, 23, 42); // #0F172A (slate-900)
-    private static final Color BG_LIGHT = new Color(248, 250, 252); // #F8FAFC (slate-50)
-    private static final Color TEXT_MUTED = new Color(100, 116, 139); // #64748B (slate-500)
+    private static final Color GRAY_BUTTON = new Color(55, 65, 81); // #374151 (Slate 700)
+    private static final Color SIDEBAR_BG = new Color(185, 28, 28); // #B91C1C (Red 700)
+    private static final Color BG_LIGHT = new Color(18, 18, 18); // #121212 (Matte Black)
+    private static final Color TEXT_MUTED = new Color(148, 163, 184); // #94A3B8 (Slate 400)
+    private static final Color CARD_BG = new Color(30, 30, 30); // #1E1E1E
+    private static final Color BORDER_COLOR = new Color(64, 64, 64); // #404040
 
     public AdminDashboardFrame() {
         adminController = new AdminController();
@@ -94,16 +96,50 @@ public class AdminDashboardFrame extends JFrame {
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setSize(980, 620); // slightly larger for modern layout spacing
         setLocationRelativeTo(null);
-        setResizable(false);
+        setResizable(true);
 
         JPanel mainPanel = new JPanel(new BorderLayout());
         setContentPane(mainPanel);
 
         // --- 1. SIDEBAR PANEL (LEFT) ---
-        sidebarPanel = new JPanel();
-        sidebarPanel.setBackground(SIDEBAR_BG);
-        sidebarPanel.setPreferredSize(new Dimension(230, 0));
-        sidebarPanel.setBorder(new EmptyBorder(30, 15, 30, 15));
+        sidebarPanel = new JPanel() {
+            @Override
+            protected void paintComponent(Graphics g) {
+                int w = getWidth();
+                int h = getHeight();
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+
+                // 1. Draw main red sidebar polygon
+                java.awt.geom.Path2D mainPath = new java.awt.geom.Path2D.Double();
+                mainPath.moveTo(0, 0);
+                mainPath.lineTo(w, 0);
+                mainPath.lineTo(w - 55, 230);
+                mainPath.lineTo(w, 310);
+                mainPath.lineTo(w, h);
+                mainPath.lineTo(0, h);
+                mainPath.closePath();
+
+                g2.setColor(SIDEBAR_BG);
+                g2.fill(mainPath);
+
+                // 2. Draw the 3D fold shadow
+                java.awt.geom.Path2D shadowPath = new java.awt.geom.Path2D.Double();
+                shadowPath.moveTo(w - 55, 230);
+                shadowPath.lineTo(w, 310);
+                shadowPath.lineTo(w - 15, 390);
+                shadowPath.closePath();
+
+                g2.setColor(new Color(127, 29, 29)); // #7F1D1D (Dark red fold shadow)
+                g2.fill(shadowPath);
+
+                g2.dispose();
+                super.paintComponent(g);
+            }
+        };
+        sidebarPanel.setOpaque(false);
+        sidebarPanel.setPreferredSize(new Dimension(250, 0));
+        sidebarPanel.setBorder(new EmptyBorder(30, 15, 30, 25));
         sidebarPanel.setLayout(new GridBagLayout());
 
         GridBagConstraints gbcNav = new GridBagConstraints();
@@ -206,9 +242,10 @@ public class AdminDashboardFrame extends JFrame {
     private JButton createNavButton(String text) {
         JButton btn = new JButton(text);
         btn.setFont(new Font("Segoe UI", Font.BOLD, 13));
-        btn.setPreferredSize(new Dimension(190, 38));
+        btn.setPreferredSize(new Dimension(175, 38));
         btn.setFocusPainted(false);
         btn.putClientProperty("JButton.buttonType", "roundRect");
+        btn.putClientProperty("JButton.borderColor", new Color(255, 255, 255, 80));
 
         navButtons.add(btn);
 
@@ -242,15 +279,17 @@ public class AdminDashboardFrame extends JFrame {
     private void navigate(String cardName, JButton activeButton) {
         for (JButton btn : navButtons) {
             if (btn == activeButton) {
-                btn.setBackground(ACTIVE_BLUE);
-                btn.setForeground(Color.WHITE);
+                btn.setBackground(Color.WHITE);
+                btn.setForeground(SIDEBAR_BG);
                 btn.setContentAreaFilled(true);
                 btn.setOpaque(true);
+                btn.putClientProperty("JButton.borderColor", Color.WHITE);
             } else {
                 btn.setBackground(new Color(0, 0, 0, 0));
-                btn.setForeground(new Color(203, 213, 225)); // slate-300 light text for dark sidebar
+                btn.setForeground(new Color(254, 226, 226)); // Red 100 text for red sidebar
                 btn.setContentAreaFilled(false);
                 btn.setOpaque(false);
+                btn.putClientProperty("JButton.borderColor", new Color(255, 255, 255, 80));
             }
         }
         cardLayout.show(contentPanel, cardName);
@@ -292,7 +331,7 @@ public class AdminDashboardFrame extends JFrame {
             "Verifikasi data reservasi masuk, alokasi status pengerjaan servis bengkel.", 
             "KELOLA", 
             btnNavKelola, 
-            ACTIVE_BLUE
+            ACTIVE_RED
         );
         
         // Shortcut 2: Jadwal & Montir
@@ -325,9 +364,9 @@ public class AdminDashboardFrame extends JFrame {
             protected void paintComponent(Graphics g) {
                 Graphics2D g2 = (Graphics2D) g.create();
                 g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                g2.setColor(Color.WHITE);
+                g2.setColor(CARD_BG);
                 g2.fillRoundRect(0, 0, getWidth(), getHeight(), 16, 16);
-                g2.setColor(new Color(226, 232, 240));
+                g2.setColor(BORDER_COLOR);
                 g2.drawRoundRect(0, 0, getWidth() - 1, getHeight() - 1, 16, 16);
                 g2.dispose();
                 super.paintComponent(g);
@@ -414,6 +453,7 @@ public class AdminDashboardFrame extends JFrame {
         txtSearch.setPreferredSize(new Dimension(240, 32));
         txtSearch.setFont(new Font("Segoe UI", Font.PLAIN, 13));
         txtSearch.putClientProperty("JTextField.placeholderText", "Masukkan kata kunci...");
+        txtSearch.putClientProperty("JTextField.showClearButton", true);
         searchBarPanel.add(txtSearch);
 
         btnSearch = new JButton("Cari");
@@ -444,9 +484,11 @@ public class AdminDashboardFrame extends JFrame {
         tblKelola.getTableHeader().setFont(new Font("Segoe UI", Font.BOLD, 12));
         tblKelola.setShowVerticalLines(false);
         tblKelola.setIntercellSpacing(new Dimension(0, 1));
+        tblKelola.setSelectionBackground(SIDEBAR_BG);
+        tblKelola.setSelectionForeground(Color.WHITE);
         
         JScrollPane scrollTable = new JScrollPane(tblKelola);
-        scrollTable.setBorder(BorderFactory.createLineBorder(new Color(226, 232, 240), 1));
+        scrollTable.setBorder(BorderFactory.createLineBorder(BORDER_COLOR, 1));
         centerPanel.add(scrollTable, BorderLayout.CENTER);
 
         cardKelolaReservasi.add(centerPanel, BorderLayout.CENTER);
@@ -476,7 +518,7 @@ public class AdminDashboardFrame extends JFrame {
 
         JButton btnStatusProses = new JButton("Proses Servis");
         btnStatusProses.setFont(new Font("Segoe UI", Font.BOLD, 12));
-        btnStatusProses.setBackground(ACTIVE_BLUE);
+        btnStatusProses.setBackground(ACTIVE_RED);
         btnStatusProses.setForeground(Color.WHITE);
         btnStatusProses.setPreferredSize(new Dimension(120, 38));
         btnStatusProses.addActionListener(new ActionListener() {
@@ -550,9 +592,9 @@ public class AdminDashboardFrame extends JFrame {
 
         // Inputs Card Container
         JPanel formCard = new JPanel(new GridBagLayout());
-        formCard.setBackground(Color.WHITE);
+        formCard.setBackground(CARD_BG);
         formCard.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createLineBorder(new Color(226, 232, 240), 1, true),
+            BorderFactory.createLineBorder(BORDER_COLOR, 1, true),
             BorderFactory.createEmptyBorder(20, 24, 20, 24)
         ));
 
@@ -673,7 +715,7 @@ public class AdminDashboardFrame extends JFrame {
 
         btnSimpanJadwal = new JButton("Simpan Jadwal");
         btnSimpanJadwal.setFont(new Font("Segoe UI", Font.BOLD, 13));
-        btnSimpanJadwal.setBackground(ACTIVE_BLUE);
+        btnSimpanJadwal.setBackground(ACTIVE_RED);
         btnSimpanJadwal.setForeground(Color.WHITE);
         btnSimpanJadwal.setPreferredSize(new Dimension(140, 38));
         btnSimpanJadwal.setFocusPainted(false);
@@ -759,7 +801,7 @@ public class AdminDashboardFrame extends JFrame {
         gbc.gridx = 2; gbc.gridy = 1;
         btnTampilkanLaporan = new JButton("Tampilkan");
         btnTampilkanLaporan.setFont(new Font("Segoe UI", Font.BOLD, 13));
-        btnTampilkanLaporan.setBackground(ACTIVE_BLUE);
+        btnTampilkanLaporan.setBackground(ACTIVE_RED);
         btnTampilkanLaporan.setForeground(Color.WHITE);
         btnTampilkanLaporan.setPreferredSize(new Dimension(120, 32));
         btnTampilkanLaporan.putClientProperty("JButton.buttonType", "roundRect");
@@ -785,7 +827,7 @@ public class AdminDashboardFrame extends JFrame {
         lblWidgetSelesai = new JLabel("0");
         lblWidgetMontir = new JLabel("-");
 
-        metricsPanel.add(createWidgetCard("TOTAL RESERVASI", lblWidgetTotal, ACTIVE_BLUE));
+        metricsPanel.add(createWidgetCard("TOTAL RESERVASI", lblWidgetTotal, ACTIVE_RED));
         metricsPanel.add(createWidgetCard("SERVIS SELESAI", lblWidgetSelesai, GREEN_BUTTON));
         metricsPanel.add(createWidgetCard("MONTIR TERAKTIF", lblWidgetMontir, new Color(139, 92, 246)));
 
@@ -805,9 +847,11 @@ public class AdminDashboardFrame extends JFrame {
         tblLaporan.getTableHeader().setFont(new Font("Segoe UI", Font.BOLD, 12));
         tblLaporan.setShowVerticalLines(false);
         tblLaporan.setIntercellSpacing(new Dimension(0, 1));
+        tblLaporan.setSelectionBackground(SIDEBAR_BG);
+        tblLaporan.setSelectionForeground(Color.WHITE);
         
         JScrollPane scrollTable = new JScrollPane(tblLaporan);
-        scrollTable.setBorder(BorderFactory.createLineBorder(new Color(226, 232, 240), 1));
+        scrollTable.setBorder(BorderFactory.createLineBorder(BORDER_COLOR, 1));
         contentArea.add(scrollTable, BorderLayout.CENTER);
 
         cardLaporan.add(contentArea, BorderLayout.CENTER);
@@ -832,7 +876,7 @@ public class AdminDashboardFrame extends JFrame {
 
         JButton btnPrintLaporan = new JButton("Cetak Laporan");
         btnPrintLaporan.setFont(new Font("Segoe UI", Font.BOLD, 13));
-        btnPrintLaporan.setBackground(ACTIVE_BLUE);
+        btnPrintLaporan.setBackground(ACTIVE_RED);
         btnPrintLaporan.setForeground(Color.WHITE);
         btnPrintLaporan.setPreferredSize(new Dimension(150, 38));
         btnPrintLaporan.putClientProperty("JButton.buttonType", "roundRect");
@@ -1107,9 +1151,9 @@ public class AdminDashboardFrame extends JFrame {
     // Peningkatan 8: Card Widget Builder untuk Metrik Ringkasan
     private JPanel createWidgetCard(String title, JLabel valueLabel, Color valColor) {
         JPanel card = new JPanel(new BorderLayout());
-        card.setBackground(Color.WHITE);
+        card.setBackground(CARD_BG);
         card.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createLineBorder(new Color(226, 232, 240), 1, true),
+            BorderFactory.createLineBorder(BORDER_COLOR, 1, true),
             BorderFactory.createEmptyBorder(10, 15, 10, 15)
         ));
         

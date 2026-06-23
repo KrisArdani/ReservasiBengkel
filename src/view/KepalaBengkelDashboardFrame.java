@@ -41,12 +41,14 @@ public class KepalaBengkelDashboardFrame extends JFrame {
     private List<Object[]> rawLaporanRows;
     private JButton btnExportExcel;
 
-    private static final Color NAVY_BLUE = new Color(15, 23, 42); // #0F172A (Slate 900)
-    private static final Color ACTIVE_BLUE = new Color(37, 99, 235); // #2563EB (Royal Blue)
+    private static final Color NAVY_BLUE = new Color(248, 250, 252); // #F8FAFC (Slate 50)
+    private static final Color ACTIVE_RED = new Color(185, 28, 28); // #B91C1C (Red 700)
     private static final Color GREEN_BUTTON = new Color(16, 185, 129); // #10B981 (Emerald Green)
-    private static final Color SIDEBAR_BG = new Color(15, 23, 42); // #0F172A (slate-900)
-    private static final Color BG_LIGHT = new Color(248, 250, 252); // #F8FAFC (slate-50)
-    private static final Color TEXT_MUTED = new Color(100, 116, 139); // #64748B (slate-500)
+    private static final Color SIDEBAR_BG = new Color(185, 28, 28); // #B91C1C (Red 700)
+    private static final Color BG_LIGHT = new Color(18, 18, 18); // #121212 (Matte Black)
+    private static final Color TEXT_MUTED = new Color(148, 163, 184); // #94A3B8 (Slate 400)
+    private static final Color CARD_BG = new Color(30, 30, 30); // #1E1E1E
+    private static final Color BORDER_COLOR = new Color(64, 64, 64); // #404040
 
     public KepalaBengkelDashboardFrame() {
         laporanController = new LaporanController();
@@ -59,16 +61,50 @@ public class KepalaBengkelDashboardFrame extends JFrame {
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setSize(960, 580); // slightly larger for modern layout spacing
         setLocationRelativeTo(null);
-        setResizable(false);
+        setResizable(true);
 
         JPanel mainPanel = new JPanel(new BorderLayout());
         setContentPane(mainPanel);
 
         // --- 1. SIDEBAR PANEL (LEFT) ---
-        sidebarPanel = new JPanel();
-        sidebarPanel.setBackground(SIDEBAR_BG);
-        sidebarPanel.setPreferredSize(new Dimension(230, 0));
-        sidebarPanel.setBorder(new EmptyBorder(30, 15, 30, 15));
+        sidebarPanel = new JPanel() {
+            @Override
+            protected void paintComponent(Graphics g) {
+                int w = getWidth();
+                int h = getHeight();
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+
+                // 1. Draw main red sidebar polygon
+                java.awt.geom.Path2D mainPath = new java.awt.geom.Path2D.Double();
+                mainPath.moveTo(0, 0);
+                mainPath.lineTo(w, 0);
+                mainPath.lineTo(w - 55, 230);
+                mainPath.lineTo(w, 310);
+                mainPath.lineTo(w, h);
+                mainPath.lineTo(0, h);
+                mainPath.closePath();
+
+                g2.setColor(SIDEBAR_BG);
+                g2.fill(mainPath);
+
+                // 2. Draw the 3D fold shadow
+                java.awt.geom.Path2D shadowPath = new java.awt.geom.Path2D.Double();
+                shadowPath.moveTo(w - 55, 230);
+                shadowPath.lineTo(w, 310);
+                shadowPath.lineTo(w - 15, 390);
+                shadowPath.closePath();
+
+                g2.setColor(new Color(127, 29, 29)); // #7F1D1D (Dark red fold shadow)
+                g2.fill(shadowPath);
+
+                g2.dispose();
+                super.paintComponent(g);
+            }
+        };
+        sidebarPanel.setOpaque(false);
+        sidebarPanel.setPreferredSize(new Dimension(250, 0));
+        sidebarPanel.setBorder(new EmptyBorder(30, 15, 30, 25));
         sidebarPanel.setLayout(new GridBagLayout());
 
         GridBagConstraints gbcNav = new GridBagConstraints();
@@ -163,9 +199,10 @@ public class KepalaBengkelDashboardFrame extends JFrame {
     private JButton createNavButton(String text) {
         JButton btn = new JButton(text);
         btn.setFont(new Font("Segoe UI", Font.BOLD, 13));
-        btn.setPreferredSize(new Dimension(190, 38));
+        btn.setPreferredSize(new Dimension(175, 38));
         btn.setFocusPainted(false);
         btn.putClientProperty("JButton.buttonType", "roundRect");
+        btn.putClientProperty("JButton.borderColor", new Color(255, 255, 255, 80));
 
         navButtons.add(btn);
 
@@ -194,15 +231,17 @@ public class KepalaBengkelDashboardFrame extends JFrame {
     private void navigate(String cardName, JButton activeButton) {
         for (JButton btn : navButtons) {
             if (btn == activeButton) {
-                btn.setBackground(ACTIVE_BLUE);
-                btn.setForeground(Color.WHITE);
+                btn.setBackground(Color.WHITE);
+                btn.setForeground(SIDEBAR_BG);
                 btn.setContentAreaFilled(true);
                 btn.setOpaque(true);
+                btn.putClientProperty("JButton.borderColor", Color.WHITE);
             } else {
                 btn.setBackground(new Color(0, 0, 0, 0));
-                btn.setForeground(new Color(203, 213, 225)); // slate-300 light text for dark sidebar
+                btn.setForeground(new Color(254, 226, 226)); // Red 100 text for red sidebar
                 btn.setContentAreaFilled(false);
                 btn.setOpaque(false);
+                btn.putClientProperty("JButton.borderColor", new Color(255, 255, 255, 80));
             }
         }
         cardLayout.show(contentPanel, cardName);
@@ -243,9 +282,9 @@ public class KepalaBengkelDashboardFrame extends JFrame {
             protected void paintComponent(Graphics g) {
                 Graphics2D g2 = (Graphics2D) g.create();
                 g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                g2.setColor(Color.WHITE);
+                g2.setColor(CARD_BG);
                 g2.fillRoundRect(0, 0, getWidth(), getHeight(), 16, 16);
-                g2.setColor(new Color(226, 232, 240));
+                g2.setColor(BORDER_COLOR);
                 g2.drawRoundRect(0, 0, getWidth() - 1, getHeight() - 1, 16, 16);
                 g2.dispose();
                 super.paintComponent(g);
@@ -256,7 +295,7 @@ public class KepalaBengkelDashboardFrame extends JFrame {
         cardLaporanShort.setCursor(new Cursor(Cursor.HAND_CURSOR));
 
         JPanel accentBar = new JPanel();
-        accentBar.setBackground(ACTIVE_BLUE);
+        accentBar.setBackground(ACTIVE_RED);
         accentBar.setPreferredSize(new Dimension(6, 40));
         cardLaporanShort.add(accentBar, BorderLayout.WEST);
 
@@ -359,7 +398,7 @@ public class KepalaBengkelDashboardFrame extends JFrame {
         gbc.gridx = 2; gbc.gridy = 1;
         btnTampilkanLaporan = new JButton("Tampilkan");
         btnTampilkanLaporan.setFont(new Font("Segoe UI", Font.BOLD, 13));
-        btnTampilkanLaporan.setBackground(ACTIVE_BLUE);
+        btnTampilkanLaporan.setBackground(ACTIVE_RED);
         btnTampilkanLaporan.setForeground(Color.WHITE);
         btnTampilkanLaporan.setPreferredSize(new Dimension(120, 32));
         btnTampilkanLaporan.putClientProperty("JButton.buttonType", "roundRect");
@@ -385,9 +424,11 @@ public class KepalaBengkelDashboardFrame extends JFrame {
         tblLaporan.getTableHeader().setFont(new Font("Segoe UI", Font.BOLD, 12));
         tblLaporan.setShowVerticalLines(false);
         tblLaporan.setIntercellSpacing(new Dimension(0, 1));
+        tblLaporan.setSelectionBackground(SIDEBAR_BG);
+        tblLaporan.setSelectionForeground(Color.WHITE);
         
         JScrollPane scrollTable = new JScrollPane(tblLaporan);
-        scrollTable.setBorder(BorderFactory.createLineBorder(new Color(226, 232, 240), 1));
+        scrollTable.setBorder(BorderFactory.createLineBorder(BORDER_COLOR, 1));
         contentArea.add(scrollTable, BorderLayout.CENTER);
 
         cardLaporan.add(contentArea, BorderLayout.CENTER);
